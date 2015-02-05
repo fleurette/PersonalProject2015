@@ -68,3 +68,8 @@ persons = [
   ('_cagesmith','M'),
   ('KatieGinga','F')
 ]
+
+class Person:
+  def __init__(self)
+    self.screenName = data(0)
+    self.gender = data(1)

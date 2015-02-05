@@ -1,15 +1,17 @@
 import tweepy
-
 from Data import *
 from Keys import *
+from DataCurating import *
+from DBManagement import *
 
-auth = tweepy.OAuthHandler(consumerKey, consumerSecret)
-auth.set_access_token(accessToken, accessSecret)
+X = 1
 
-api = tweepy.API(auth)
-
-test = tweepy.api.user_timeline("imp_proj_01")
-
-for (person,gender) in persons:
-  
+# Get API object
+api = initialiseAPI()
+# For each profiles
+for data in persons[0:X]:
+  person = Person(data)
+  user = getUser(api, person)
+  tweets = getTweets(api, person)
+  # Record stuff in database
 
