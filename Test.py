@@ -3,12 +3,13 @@ import tweepy
 from Data import *
 from Keys import *
 
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
+auth = tweepy.OAuthHandler(consumerKey, consumerSecret)
+auth.set_access_token(accessToken, accessSecret)
 
 api = tweepy.API(auth)
 
 test = tweepy.api.user_timeline("imp_proj_01")
-print 42
 
+for (person,gender) in persons:
+  
 

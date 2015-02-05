@@ -1,4 +1,4 @@
-data = [
+persons = [
   ('AdamDreece','M'),
   ('AhmadK111','M'),
   ('AndrewCrigler','M'),
