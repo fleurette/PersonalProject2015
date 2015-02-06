@@ -1,1 +1,3 @@
-__all__ = ["DataCurating.py", "CollectedData.py"]
+from dataCurating import *
+from collectedData import *
+__all__ = ["dataCurating", "collectedData"]

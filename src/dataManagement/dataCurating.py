@@ -29,4 +29,5 @@ class Profile:
     self.friendsCount = user.friends_count
     self.language = user.lang
     self.createdAt = user.created_at
+
     self.gender = person.gender

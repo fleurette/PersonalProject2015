@@ -1,3 +1,11 @@
+class Person:
+  def __init__(self,data):
+    self.screenName = data[0]
+    self.gender = data[1]
+
+def test():
+  print "helloe"
+
 selectedPersons = [
   ('AdamDreece','M'),
   ('AhmadK111','M'),
@@ -72,8 +80,3 @@ selectedPersons = [
 persons = []
 for person in selectedPersons:
   persons.append(Person(person))
-
-class Person:
-  def __init__(self)
-    self.screenName = data(0)
-    self.gender = data(1)
