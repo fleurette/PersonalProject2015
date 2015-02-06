@@ -1,7 +1,4 @@
 import tweepy
-from SelectedData import *
-from APIManagement import *
-from DataCurating import *
 from DBManagement import *
 
 X = 1
