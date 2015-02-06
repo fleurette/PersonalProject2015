@@ -1,4 +1,4 @@
-def ExtractTweets(tweets):
+def extractTweets(tweets):
   strippedTweets = []
   
   for tweet in tweets:
@@ -6,7 +6,7 @@ def ExtractTweets(tweets):
 
   return strippedTweets
 
-def ExtractProfile(user, person):
+def extractProfile(user, person):
   return Profile(user, person)
 
 class Tweet:

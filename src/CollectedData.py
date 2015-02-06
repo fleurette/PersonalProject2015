@@ -1,4 +1,4 @@
-persons = [
+selectedPersons = [
   ('AdamDreece','M'),
   ('AhmadK111','M'),
   ('AndrewCrigler','M'),
@@ -68,6 +68,10 @@ persons = [
   ('_cagesmith','M'),
   ('KatieGinga','F')
 ]
+
+persons = []
+for person in selectedPersons:
+  persons.append(Person(person))
 
 class Person:
   def __init__(self)
