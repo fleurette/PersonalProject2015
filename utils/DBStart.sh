@@ -1,7 +1,7 @@
 #!bin/sh
 
 # Extract dbPath and port number
-FILE='DBCredentials.dat'
+FILE='../DBCredentials.dat'
 exec 3<&0
 exec 0<$FILE
 read line

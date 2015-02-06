@@ -1,1 +1,2 @@
-__all__ = ["DBManagement", "DBCredentials"]
+from DBManagement import *
+__all__ = ["DBManagement"]

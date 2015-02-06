@@ -6,12 +6,12 @@ def initialiseDB(Credentials):
     content = f.read().splitlines()
   
   client = MongoClient(content[3], int(content[2]))
-  db = client.test
+  db = client[content[4]]
+  return db[content[5]]
   
-  return db.collection
 
-def writeUsersDB(db, user, tweets):
+def writeUser(db, user, tweets):
   data = user.__dict__
-  data['tweets'] = tweets.__dict__
+  data['tweets'] = map(lambda x:x.__dict__, tweets)
 
   db.insert(data)

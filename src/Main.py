@@ -1,17 +1,36 @@
-import tweepy
+import pprint
+import sys
 import dataManagement
 import crawler
 import DB
-#
-#X = 1
-#
+
 ## Get API object
-#api = getAPI()
-## For each profiles
-#for person in persons[0:X]:
-#  # Mine data, strip it
-#  user = extractProfile(getUser(api, person),person)
-#  tweets = extractTweets(getTweets(api, person))
-#  # Record stuff in database
-  
+api = crawler.getAPI()
+## Get db
+try:
+  db = DB.initialiseDB('../DBCredentials.dat')
+except Exception as e:
+  print "Program crashed during database initialisation. Exiting."
+  sys.exit()
+ 
+for person in dataManagement.persons:
+  try:
+    user = dataManagement.extractProfile(crawler.getUser(api, person),person)
+    tweets = dataManagement.extractTweets(crawler.getTweets(api, person))
+    print "Information correctly collected for user " + person.screenName
+    try:
+      DB.writeUser(db, user, tweets)
+    except Exception as e:
+      print "Failed to write information for user " + person.screenName 
+      print "Error was:"
+      print e
+      print "Skipping ...."
+      pass
+  except Exception as e:
+    print "Failed to collect information for user " + person.screenName
+    print "Error was:"
+    print e
+    print "Skipping ...."
+    pass
+
 
