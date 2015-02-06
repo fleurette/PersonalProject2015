@@ -12,6 +12,7 @@ def initialiseDB(Credentials):
 
 def writeUser(db, user, tweets):
   data = user.__dict__
+  data['_id'] = user.screenName
   data['tweets'] = map(lambda x:x.__dict__, tweets)
 
   db.insert(data)

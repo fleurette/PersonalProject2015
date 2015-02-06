@@ -20,17 +20,14 @@ for person in dataManagement.persons:
     print "Information correctly collected for user " + person.screenName
     try:
       DB.writeUser(db, user, tweets)
+      print "Information correctly recorded for user " + person.screenName
     except Exception as e:
-      print "Failed to write information for user " + person.screenName 
-      print "Error was:"
+      print "Failed to write information for user " + person.screenName + ". Error was:"
       print e
       print "Skipping ...."
       pass
   except Exception as e:
-    print "Failed to collect information for user " + person.screenName
-    print "Error was:"
+    print "Failed to collect information for user " + person.screenName + ". Error was:"
     print e
     print "Skipping ...."
     pass
-
-
