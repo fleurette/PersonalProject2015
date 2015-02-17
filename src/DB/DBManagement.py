@@ -16,3 +16,7 @@ def writeUser(db, user, tweets):
   data['tweets'] = map(lambda x:x.__dict__, tweets)
 
   db.insert(data)
+
+
+def existsUser(db, screenName):
+  return db.find_one({"_id": screenName})
