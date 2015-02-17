@@ -27,6 +27,11 @@ class DBInterface:
   def getProfiles(self):
     return (self.profiles).find()
 
+  def deleteAll(self,screenName):
+    self.maleData.remove({"_id": screenName})
+    self.femaleData.remove({"_id": screenName})
+    self.profiles.remove({"_id": screenName})
+
   def writeData(self,data):
     if(data["gender"] == "M"): 
       self.maleData.insert(data)

@@ -1,7 +1,7 @@
 def interTweetDistribution(tweets):
   result = [0]
   if(len(tweets) >= 2):
-    [result.append((prev['creationTime']-cur['creationTime']).total_seconds()) for (prev,cur) in zip(tweets,tweets[1:])]
+    [result.append((prev.creationTime-cur.creationTime).total_seconds()) for (prev,cur) in zip(tweets,tweets[1:])]
   return result
 
 def mean(numbers):
@@ -12,4 +12,14 @@ def mean(numbers):
     return 0
 
 def getTweetTimes(tweets):
-  return map(lambda(tweet): tweet["creationTime"], tweets)
+  return map(lambda(tweet): tweet.creationTime, tweets)
+
+def extractData(user,tweets):
+  data = {}
+  print tweets
+  data["gender"] = user.gender
+  data["interTweets"] = interTweetDistribution(tweets)
+  data["tweetTimes"] = getTweetTimes(tweets)
+  data["mean"] = mean(data["interTweets"])
+  data["_id"] = user.screenName
+  return data

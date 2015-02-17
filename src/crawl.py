@@ -1,4 +1,5 @@
 import pprint
+import time
 import sys
 import dataManagement
 import crawler
@@ -24,11 +25,15 @@ for person in dataManagement.persons:
     try:
       user = dataManagement.extractProfile(crawler.getUser(api, person),person)
       tweets = dataManagement.extractTweets(crawler.getTweets(api, person))
+      data = dataManagement.extractData(user,tweets)
       print "Information correctly collected for user " + person.screenName
       try:
         interface.writeUser(user, tweets)
+        interface.writeData(data)
         print "Information correctly recorded for user " + person.screenName
       except Exception as e:
+        # Abort process and delete all written information
+        interace.deleteAll(user["screenName"])
         print "Failed to write information for user " + person.screenName + ". Error was:"
         print e
         print "Skipping ...."
