@@ -1,3 +1,4 @@
 from dataCurating import *
 from collectedData import *
-__all__ = ["dataCurating", "collectedData"]
+from dataAnalyze import * 
+__all__ = ["dataCurating", "collectedData", "dataAnalyze"]

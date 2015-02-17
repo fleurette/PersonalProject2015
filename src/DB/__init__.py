@@ -1,2 +1,2 @@
-from DBManagement import *
-__all__ = ["DBManagement"]
+from DBInterface import *
+__all__ = ["DBInterface"]

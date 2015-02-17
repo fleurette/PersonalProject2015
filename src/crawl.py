@@ -6,17 +6,18 @@ import DB
 
 ## Get API object
 api = crawler.getAPI()
-## Get db
+## Get DB
 try:
-  db = DB.initialiseDB('../DBCredentials.dat')
+  interface = DB.DBInterface("../DBCredentials.dat")
   print "DB correctly initialized"
 except Exception as e:
   print "Program crashed during database initialisation. Exiting."
+  print e
   sys.exit()
  
 for person in dataManagement.persons:
-  print "Treating user" + person.screenName
-  if DB.existsUser(db, person.screenName):
+  print "Treating user " + person.screenName
+  if interface.existsUser(person.screenName):
     print "User already stored in database"
   else:
     print "Starting data collection"
@@ -25,7 +26,7 @@ for person in dataManagement.persons:
       tweets = dataManagement.extractTweets(crawler.getTweets(api, person))
       print "Information correctly collected for user " + person.screenName
       try:
-        DB.writeUser(db, user, tweets)
+        interface.writeUser(user, tweets)
         print "Information correctly recorded for user " + person.screenName
       except Exception as e:
         print "Failed to write information for user " + person.screenName + ". Error was:"
