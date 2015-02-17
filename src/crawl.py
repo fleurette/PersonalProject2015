@@ -17,6 +17,8 @@ except Exception as e:
   sys.exit()
  
 for person in dataManagement.persons:
+  print ""
+  print ""
   print "Treating user " + person.screenName
   if interface.existsUser(person.screenName):
     print "User already stored in database"

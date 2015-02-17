@@ -16,7 +16,6 @@ def getTweetTimes(tweets):
 
 def extractData(user,tweets):
   data = {}
-  print tweets
   data["gender"] = user.gender
   data["interTweets"] = interTweetDistribution(tweets)
   data["tweetTimes"] = getTweetTimes(tweets)
