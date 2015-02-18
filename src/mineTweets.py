@@ -39,20 +39,17 @@ def mineAccounts(persons,dbInterface, api):
        pp.pprint(e)
 
 def popFirstN(array, n):
-  if(len(array) < n):
-    result = array
-  else:
-    i = 0
-    result = []
-    while i < n:
-      result.append(array.pop())
-      i = i + 1
+  i = 0
+  result = []
+  while i < n and len(array):
+    result.append(array.pop())
+    i = i + 1
    
   return result
 
 # Configurations
 threads = [{"is_alive": (lambda: False), "api":api} for api in twitterUtils.getAPIs()]
-cycleLength = 60*10
+cycleLength = 60*20
 maxAccounts = 15
 accounts = []
 
@@ -61,14 +58,14 @@ while(True):
   # If all threads are unactive and users is empty, query the database
   if(not(reduce(lambda t1,t2: t1["is_alive"]()  and t2["is_alive"](), threads)) and (not len(accounts))):
     accounts = [account for account in dbInterface.getAccounts()]
-  # Distribute users over threads
-  for thread in threads:
-    # If the thread is alive and there are remaining accounts
-    if(len(accounts) and (not thread["is_alive"]())):
-      selectedAccounts = popFirstN(accounts, maxAccounts)
-      _thread = threading.Thread(target=mineAccounts, args=(selectedAccounts, dbInterface, thread["api"]))
-      _thread.start()
-      thread["is_alive"] = _thread.is_alive
+    # Distribute users over threads
+    for thread in threads:
+      # If the thread is alive and there are remaining accounts
+      if(len(accounts) and (not thread["is_alive"]())):
+        selectedAccounts = popFirstN(accounts, maxAccounts)
+        _thread = threading.Thread(target=mineAccounts, args=(selectedAccounts, dbInterface, thread["api"]))
+        _thread.start()
+        thread["is_alive"] = _thread.is_alive
   
   print "Going to sleep for " + str(cycleLength) + " seconds."
   time.sleep(cycleLength)
