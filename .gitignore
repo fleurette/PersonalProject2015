@@ -2,4 +2,4 @@
 *.pyw
 .*
 data/*
-*APIManagement.py
+*APIs.py

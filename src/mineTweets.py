@@ -4,10 +4,10 @@ import dataManagement
 import crawler
 import DB
 
-## Get API object
-api = crawler.getAPI()
+# Get APIs
+APIs = crawler.getAPIs()
 
-## Get database
+# Get database
 try:
   dbInterface = DB.DBInterface("../DBCredentials.dat")
   print "Database correctly initialized"
@@ -15,13 +15,12 @@ except Exception as e:
   print "Program crashed during database initialisation. Exiting."
   sys.exit()
 
+# Define thread mining function
 def mineAccounts(persons,dbInterface): 
   for person in persons:
     if not dbInterface.existsUser(person.screenName):
       try:
-        print ""
-        print "Treating user " + person.screenName
-        print "Starting data collection"
+        print "\nTreating user " + person.screenName + "\nStarting data collection"
 
         user = dataManagement.extractProfile(crawler.getUser(api, person),person)
         tweets = dataManagement.extractTweets(crawler.getTweets(api, person))
@@ -29,11 +28,12 @@ def mineAccounts(persons,dbInterface):
 
         dbInterface.writeUser(user, tweets)
         dbInterface.writeData(data)
+
         print "Information correctly collected and recorded for user " + person.screenName
       except Exception as e:
         interace.deleteAll(person.screenName)
         print "Failed to collect information for user " + person.screenName + ". Error was: " + e 
 
-# Every twenty seconds get person names to mine, distribute them across APIs
+# Get persons from collected data
 
 print "All data has been treated"
