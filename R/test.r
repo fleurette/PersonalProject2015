@@ -1,7 +1,7 @@
 library(rJava)
 library(RMongo)
 
-filePath <- "../DBCredentials.dat"
+filePath <- "../dbCredentials.dat"
 
 # Connect to database
 connectDB <- function() {

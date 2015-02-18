@@ -2,10 +2,10 @@ import tweepy
 
 accounts = [
 { 
-  consumerKey:"",
-  consumerSecret:"",
-  accessKey:"",
-  accessSecret:""
+  "consumerKey":"",
+  "consumerSecret":"",
+  "accessKey":"",
+  "accessSecret":""
 }
 ]
 
