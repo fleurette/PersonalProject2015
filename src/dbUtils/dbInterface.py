@@ -16,10 +16,10 @@ class dbInterface:
     return self.accounts.find()
  
   def writeAccount(self, screenName, gender):
-    self.account.insert({"_id":screenName, "gender": gender})
+    self.accounts.insert({"_id":screenName, "gender": gender})
 
   def deleteAccount(self,screenName):
-    self.account.remove({"_id":screenName})
+    self.accounts.remove({"_id":screenName})
 
   def writeProfile(self, user, tweets):
     data = user.__dict__

@@ -4,17 +4,14 @@ import tweepy
 def getTweets(api, person):	
   try:
     allTweets = []	
-    newTweets = api.user_timeline(screen_name=person.screenName,count=200)
+    newTweets = api.user_timeline(screen_name=person["_id"],count=200)
     allTweets.extend(newTweets)
     oldest = allTweets[-1].id - 1
 
-    print "Fetched " + str(len(newTweets)) + " tweets. Currently have " + str(len(allTweets))
-    
     while len(newTweets) > 0:
-      newTweets = api.user_timeline(screen_name=person.screenName,count=200,max_id=oldest)
+      newTweets = api.user_timeline(screen_name=person["_id"],count=200,max_id=oldest)
       allTweets.extend(newTweets)
       oldest = allTweets[-1].id - 1
-      print "Fetched " + str(len(newTweets)) + " tweets. Currently have " + str(len(allTweets))
   
     return allTweets
 
@@ -26,7 +23,7 @@ def getTweets(api, person):
 
 def getUser(api, person):
   try:
-    return api.get_user(person.screenName)
+    return api.get_user(person["_id"])
   except Exception as e:
     if e.reason == "[{u'message': u'Rate limit exceeded', u'code': 88}]":
       print "Rate limit exceeded, going to sleep for five minutes"

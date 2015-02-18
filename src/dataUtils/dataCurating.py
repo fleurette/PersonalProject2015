@@ -30,4 +30,4 @@ class Profile:
     self.language = user.lang
     self.createdAt = user.created_at
 
-    self.gender = person.gender
+    self.gender = person["gender"]

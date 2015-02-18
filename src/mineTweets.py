@@ -1,37 +1,42 @@
-import thread
+import threading
+import pprint
+import time
 import sys
-import dbInterface
-import dataTreatment
+import dbUtils
+import dataUtils
 import twitterUtils
 
 # Get database
 try:
-  dbInterface = dbInterface.dbInterface("../dbCredentials.dat")
+  dbInterface = dbUtils.dbInterface("../dbCredentials.dat")
   print "Database correctly initialized"
 except Exception as e:
   print "Program crashed during database initialisation. Exiting."
   sys.exit()
 
 # Define thread mining function
-def mineAccounts(persons,dbInterface): 
-  for person in persons:
-    if not dbInterface.existsProfile(person.screenName):
-      try:
-        print "\nTreating user " + person.screenName + "\nStarting data collection"
+def mineAccounts(persons,dbInterface, api): 
+ for person in persons:
+   if not dbInterface.existsProfile(person["_id"]):
+     try:
+       print "\nTreating user " + person["_id"] + "\nStarting data collection"
 
-        user = dataTreatment.extractProfile(crawler.getUser(api, person),person)
-        tweets = dataTreatment.extractTweets(crawler.getTweets(api, person))
-        data = dataTreatment.extractData(user,tweets)
+       user = dataUtils.extractProfile(twitterUtils.getUser(api, person),person)
+       tweets = dataUtils.extractTweets(twitterUtils.getTweets(api, person))
+       data = dataUtils.extractData(user,tweets)
 
-        dbInterface.writeProfile(user, tweets)
-        dbInterface.writeData(data)
-  
-        dbInterface.deleteAccount(user)
+       dbInterface.writeData(data)
+       dbInterface.writeProfile(user, tweets)
+ 
+       dbInterface.deleteAccount(person["_id"])
 
-        print "Information correctly collected and recorded for user " + person.screenName
-      except Exception as e:
-        dbInterface.deleteAll(person.screenName)
-        print "Failed to collect information for user " + person.screenName + ". Error was: " + e 
+       print "Information correctly collected and recorded for user " + person["_id"]
+     except Exception as e:
+       dbInterface.deleteAll(person["_id"])
+       print "Failed to collect information for user " + person["_id"] + ". Error was: "
+       print "There has been an exception"
+       pp = pprint.PrettyPrinter()
+       pp.pprint(e)
 
 def popFirstN(array, n):
   if(len(array) < n):
@@ -39,30 +44,31 @@ def popFirstN(array, n):
   else:
     i = 0
     result = []
-    while i < n 
+    while i < n:
       result.append(array.pop())
       i = i + 1
    
   return result
 
 # Configurations
-threads = [{"is_Alive": (lambda: False), "api":api} for api in twitterUtils.getAPIs()]
+threads = [{"is_alive": (lambda: False), "api":api} for api in twitterUtils.getAPIs()]
 cycleLength = 60*10
 maxAccounts = 15
 accounts = []
 
 # Get persons from collected data
-while(true):
+while(True):
   # If all threads are unactive and users is empty, query the database
-  if(reduce(lambda t1,t2: t1["is_Alive"]()  and t2["is_Alive"](), threads) and (not len(accounts))):
-    accounts = dbInterface.Accounts()
+  if(not(reduce(lambda t1,t2: t1["is_alive"]()  and t2["is_alive"](), threads)) and (not len(accounts))):
+    accounts = [account for account in dbInterface.getAccounts()]
   # Distribute users over threads
   for thread in threads:
     # If the thread is alive and there are remaining accounts
-    if((not len(accounts)) and (not thread["is_Alive"]()):
-      _thread = Thread(target=mineAccounts, args=(popFirstN(accounts, maxAccounts), dbInterface)
+    if(len(accounts) and (not thread["is_alive"]())):
+      selectedAccounts = popFirstN(accounts, maxAccounts)
+      _thread = threading.Thread(target=mineAccounts, args=(selectedAccounts, dbInterface, thread["api"]))
       _thread.start()
-      thread["is_Alive"] = _thread.is_Alive
+      thread["is_alive"] = _thread.is_alive
   
   print "Going to sleep for " + str(cycleLength) + " seconds."
   time.sleep(cycleLength)
