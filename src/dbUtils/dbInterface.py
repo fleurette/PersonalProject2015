@@ -15,11 +15,8 @@ class dbInterface:
   def getAccounts(self):
     return self.accounts.find()
 
-  def writeAccount(self, screenName, gender):
-    self.accounts.insert({"_id":screenName, "gender": gender})
-
-  def writeUser(self, query):
-    self.rawData(query)
+  def writeAccount(self, query):
+    self.accounts.insert(query)
 
   def deleteAccount(self,screenName):
     self.accounts.remove({"_id":screenName})

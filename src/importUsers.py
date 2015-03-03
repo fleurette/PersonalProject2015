@@ -1,4 +1,5 @@
 import dbUtils
+import json
 
 directory = '../csvDataSheets/'
 males = directory + 'twitter_accounts_males.csv'
@@ -15,18 +16,34 @@ except Exception as e:
 # Get data, assume same fields for males and females
 with open(males) as f:
   content = f.read().splitlines()
-  fields = content[0]
-  accounts = content[1:]
+  fields = content[0].split(',')
+  maleAccounts = content[1:]
 with open(females) as f:
-  accounts += f.read().splitlines()[1:]
+  femaleAccounts = f.read().splitlines()[1:]
 
 # Insert every account into users collection
-for account in accounts:
+for account in femaleAccounts:
+  query = {}
+  values = account.split(',')
   # Build query string
-  values = map(lambda x: '"' + x '"', + accounts.split(','))
-  queryString = '{' + ','.join([field+':'+value for(field,value) in zip(fields,values)])  + '}'
+  for idx,field in enumerate(fields):
+    query[field] = values[idx]
+  query['gender'] = 'F'
   # Insert into database
   try:
-    dbInterface.writeUser(queryString)
+    dbInterface.writeAccount(query)
+  except Exception as e:
+    print e
+
+for account in maleAccounts:
+  query = {}
+  values = account.split(',')
+  # Build query string
+  for idx,field in enumerate(fields):
+    query[field] = values[idx]
+  query['gender'] = 'M'
+  # Insert into database
+  try:
+    dbInterface.writeAccount(query)
   except Exception as e:
     print e
