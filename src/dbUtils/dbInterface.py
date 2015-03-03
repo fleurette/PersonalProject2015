@@ -7,16 +7,19 @@ class dbInterface:
       content = f.read().splitlines()
     client = MongoClient(content[3], int(content[2]))
     database = client[content[4]]
-    self.profiles = database[content[5]]
+    self.rawData = database[content[5]]
     self.maleData = database[content[6]]
     self.femaleData = database[content[7]]
     self.accounts = database[content[8]]
 
   def getAccounts(self):
     return self.accounts.find()
- 
+
   def writeAccount(self, screenName, gender):
     self.accounts.insert({"_id":screenName, "gender": gender})
+
+  def writeUser(self, query):
+    self.rawData(query)
 
   def deleteAccount(self,screenName):
     self.accounts.remove({"_id":screenName})
@@ -26,21 +29,21 @@ class dbInterface:
     data['_id'] = user.screenName
     data['tweets'] = map(lambda x:x.__dict__, tweets)
   
-    self.profiles.insert(data)
+    self.rawData.insert(data)
   
   def getProfile(self, screenName):
-    return self.profiles.find({"_id": screenName})
+    return self.rawData.find({"_id": screenName})
   
   def existsProfile(self, screenName):
-    return self.profiles.find({"_id": screenName}).count()
+    return self.rawData.find({"_id": screenName}).count()
   
   def getProfiles(self):
-    return (self.profiles).find()
+    return (self.rawData).find()
 
   def deleteAll(self,screenName):
     self.maleData.remove({"_id": screenName})
     self.femaleData.remove({"_id": screenName})
-    self.profiles.remove({"_id": screenName})
+    self.rawData.remove({"_id": screenName})
 
   def writeData(self,data):
     if(data["gender"] == "M"): 

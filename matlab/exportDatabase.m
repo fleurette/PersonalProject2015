@@ -23,11 +23,4 @@ client = Mongo(host)
 bb = BsonBuffer
 bb.append('','')
 findAllQuery = bb.finish()
-
-% Get collections
-cursor = MongoCursor(query)
-
-
-% Shut down the datbase
-%clearvars
-%MongoStop
+cursor = MongoCursor(findAllQuery)
