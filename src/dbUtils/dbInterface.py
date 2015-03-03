@@ -12,6 +12,12 @@ class dbInterface:
     self.femaleData = database[content[7]]
     self.accounts = database[content[8]]
 
+  def cleanAll(self):
+    self.femaleData.drop()
+    self.maleData.drop()
+    self.rawData.drop()
+    self.accounts.drop()
+
   def getAccounts(self):
     return self.accounts.find()
 

@@ -1,5 +1,7 @@
-3rt March
+3rd of March
 Realized the 3200 tweets API limit was actually a thing.
 https://twittercommunity.com/t/why-the-3200-tweet-user-timeline-limit-and-will-it-ever-change/6946/7
 Wrote script to add users from csv files into the database
 Backed up previous database
+Modified code so that it rejects users who tweeted about their baby more than 3200 tweets ago
+

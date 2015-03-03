@@ -6,8 +6,8 @@ def extractTweets(tweets):
 
   return strippedTweets
 
-def extractProfile(user, person):
-  return Profile(user, person)
+def extractProfile(user, account):
+  return Profile(user, account)
 
 class Tweet:
   def __init__(self, tweet):
@@ -17,7 +17,7 @@ class Tweet:
     self.retweeted = tweet.retweeted
 
 class Profile:
-  def __init__(self, user, person):
+  def __init__(self, user, account):
     self.screenName = user.screen_name
     self.name = user.name
     self.location = user.location
@@ -29,5 +29,4 @@ class Profile:
     self.friendsCount = user.friends_count
     self.language = user.lang
     self.createdAt = user.created_at
-
-    self.gender = person["gender"]
+    self.gender = account["gender"]

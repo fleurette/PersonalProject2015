@@ -15,28 +15,31 @@ except Exception as e:
   sys.exit()
 
 # Define thread mining function
-def mineAccounts(persons,dbInterface, api): 
- for person in persons:
-   if not dbInterface.existsProfile(person["_id"]):
+def mineAccounts(accounts,dbInterface, api): 
+ for account in accounts:
+   if not dbInterface.existsProfile(account["_id"]):
      try:
-       print "\nTreating user " + person["_id"] + "\nStarting data collection"
+       print "\nTreating user " + account["_id"] + "\nStarting data collection"
 
-       user = dataUtils.extractProfile(twitterUtils.getUser(api, person),person)
-       tweets = dataUtils.extractTweets(twitterUtils.getTweets(api, person))
-       data = dataUtils.extractData(user,tweets)
+       user = dataUtils.extractProfile(twitterUtils.getUser(api, account),account)
+       tweets = twitterUtils.getTweets(api, account)
+       if(not tweets): 
+         print "Deleting all information for account " + account["_id"]
+         print "DOB before oldest tweet"
+         dbInterface.deleteAll(account["_id"])
+         dbInterface.deleteAccount(account["_id"])
+       else:
+         tweets = dataUtils.extractTweets(tweets)
+         data = dataUtils.extractData(user,tweets)
+         dbInterface.writeData(data)
+         dbInterface.writeProfile(user, tweets)
+         dbInterface.deleteAccount(account["_id"])
 
-       dbInterface.writeData(data)
-       dbInterface.writeProfile(user, tweets)
- 
-       dbInterface.deleteAccount(person["_id"])
-
-       print "Information correctly collected and recorded for user " + person["_id"]
+         print "Information correctly collected and recorded for user " + account["_id"]
      except Exception as e:
-       dbInterface.deleteAll(person["_id"])
-       print "Failed to collect information for user " + person["_id"] + ". Error was: "
-       print "There has been an exception"
-       pp = pprint.PrettyPrinter()
-       pp.pprint(e)
+       dbInterface.deleteAll(account["_id"])
+       print "Failed to collect information for user " + account["_id"] + ". Error was: "
+       print str(e)
 
 def popFirstN(array, n):
   i = 0

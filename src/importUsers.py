@@ -1,5 +1,6 @@
 import dbUtils
 import json
+import dateutil.parser
 
 directory = '../csvDataSheets/'
 males = directory + 'twitter_accounts_males.csv'
@@ -29,9 +30,11 @@ for account in femaleAccounts:
   for idx,field in enumerate(fields):
     query[field] = values[idx]
   query['gender'] = 'F'
+  query['dob'] = dateutil.parser.parse(query['dob'],dayfirst=True)
   # Insert into database
   try:
     dbInterface.writeAccount(query)
+    print "Succesfully added user " + query['_id'] + " to the database."
   except Exception as e:
     print e
 
@@ -42,8 +45,10 @@ for account in maleAccounts:
   for idx,field in enumerate(fields):
     query[field] = values[idx]
   query['gender'] = 'M'
+  query['dob'] = dateutil.parser.parse(query['dob'],dayfirst=True)
   # Insert into database
   try:
     dbInterface.writeAccount(query)
+    print "Succesfully added user " + query['_id'] + " to the database."
   except Exception as e:
     print e
