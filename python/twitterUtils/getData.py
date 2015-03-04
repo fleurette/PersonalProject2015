@@ -8,6 +8,7 @@ def getTweets(api, account):
   try:
     time.sleep(throttleTime)
     allTweets = []	
+    print ("ping")
     newTweets = api.user_timeline(screen_name=account["_id"],count=200)
     allTweets.extend(newTweets)
     oldest = allTweets[-1].id - 1
@@ -16,6 +17,7 @@ def getTweets(api, account):
     oldestDate = allTweets[-1].created_at
 
     while len(newTweets) > 0:
+      print ("ping")
       time.sleep(throttleTime)
       newTweets = api.user_timeline(screen_name=account["_id"],count=200,max_id=oldest)
       allTweets.extend(newTweets)

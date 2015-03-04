@@ -20,18 +20,18 @@ def mineAccounts(accounts,dbInterface, api):
    if not dbInterface.existsProfile(account["_id"]):
      try:
        print "\nTreating user " + account["_id"] + "\nStarting data collection"
-
-       user = dataUtils.extractProfile(twitterUtils.getUser(api, account),account)
+       rawUser = twitterUtils.getUser(api, account)
+       user = dataUtils.extractProfile(rawUser, account)
        tweets = twitterUtils.getTweets(api, account)
        if(not tweets): 
-         print "Deleting all information for account " + account["_id"]
-         print "DOB before oldest tweet"
          dbInterface.deleteAll(account["_id"])
          dbInterface.deleteAccount(account["_id"])
+         print "Deleting all information for account " + account["_id"]
+         print "DOB before oldest tweet"
        else:
          tweets = dataUtils.extractTweets(tweets)
          data = dataUtils.extractData(user,tweets)
-         dbInterface.writeData(data)
+         dbInterface.writeData(data,account)
          dbInterface.writeProfile(user, tweets)
          dbInterface.deleteAccount(account["_id"])
 

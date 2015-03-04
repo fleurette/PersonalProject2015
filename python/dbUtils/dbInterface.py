@@ -48,7 +48,8 @@ class dbInterface:
     self.femaleData.remove({"_id": screenName})
     self.rawData.remove({"_id": screenName})
 
-  def writeData(self,data):
+  def writeData(self,data,account):
+    data["dob"] = account["dob"]
     if(data["gender"] == "M"): 
       self.maleData.insert(data)
     else:

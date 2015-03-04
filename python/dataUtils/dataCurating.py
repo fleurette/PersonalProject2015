@@ -18,7 +18,7 @@ class Tweet:
 
 class Profile:
   def __init__(self, user, account):
-    self.screenName = user.screen_name
+    self.screenName = account["_id"]
     self.name = user.name
     self.location = user.location
     self.protected = user.protected

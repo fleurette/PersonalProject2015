@@ -1,6 +1,7 @@
 deps <- c(
   "rJava",
-  "RMongo"
+  "RMongo",
+  "jsonlite"
 )
 
 install.packages(deps)
