@@ -53,19 +53,22 @@ getComplete <- function(data) {
   return (complete)
 }
 
-file.remove('.RData')
-print("Removed previous image")
+importData <- function(filePath,credentialsPath) {
+  file.remove(filePath)
+  print("Removed previous image")
+  
+  credentials <- scan(file=credentialsPath,what="character",comment.char="#")
+  mongo <- mongoDbConnect(credentials[4],credentials[3],strtoi(credentials[2]))
+  print("Connected to database")
+  
+  data.male = parseData(dbGetQuery(mongo, credentials[6], ''))
+  data.male.complete = getComplete(data.male)
+  print("Imported male data")
+  data.female = parseData(dbGetQuery(mongo, credentials[7], ''))
+  data.female.complete = getComplete(data.female)
+  print("Imported female data")
+  
+  save(data.male, data.female, data.male.complete, data.female.complete, file=filePath)
+}
 
-filePath <- "../dbCredentials.dat"
-credentials <- scan(file=filePath,what="character",comment.char="#")
-mongo <- mongoDbConnect(credentials[4],credentials[3],strtoi(credentials[2]))
-print("Connected to database")
 
-data.male = parseData(dbGetQuery(mongo, credentials[6], ''))
-data.male.complete = getComplete(data.male)
-print("Imported male data")
-data.female = parseData(dbGetQuery(mongo, credentials[7], ''))
-data.female.complete = getComplete(data.female)
-print("Imported female data")
-
-save(data.male, data.female, data.male.complete, data.female.complete, file='.RData')

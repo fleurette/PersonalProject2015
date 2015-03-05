@@ -10,8 +10,14 @@
 # Scale down
 # 39 weeks before the endDate
 # Assume there are some tweets between endDate and startDate
+pregnancyLength <- 39*7*24*3600
+
+getTimeIncrement <- function(timeLength,binSize) {
+  numBins <- pregnancyLength/binSize
+  timeInterval <- ceiling(numBins/(pregnancyLength/timeLength))
+}
+
 getIntertweetHistogamPregnancy <- function(tweetTimes, binSize, endDate) {
-  pregnancyLength <- 39*7*24*3600
   numBins <- pregnancyLength/binSize
   total <- rep(0,numBins)
   count <- rep(0,numBins)
@@ -57,7 +63,7 @@ getTweetCount <- function(tweetTimes, binSize, endDate) {
   }
 
   # Scale down
-  areaUnderTheCurve <- sum(result)*binSize
+  areaUnderTheCurve <- max(sum(result)*binSize,1)
   result <- result/(areaUnderTheCurve)
 
   return (list(x=seq(1,numBins),y=result))
