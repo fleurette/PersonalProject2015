@@ -27,6 +27,32 @@ parseData <- function(data) {
   return (result)
 }
 
+isComplete <- function(person) {
+  return (!is.na(person["complete"][[1]]) && person["complete"][[1]]==TRUE)
+}
+
+countComplete <- function(data) {
+  numComplete = 0
+  for (person in data) {
+    if (isComplete(person)) {
+      numComplete = numComplete + 1
+    }
+  }
+  return (numComplete)
+}
+
+getComplete <- function(data) {
+  complete = list(countComplete(data))
+  i = 1
+  for (person in data) {
+    if (isComplete(person)) {
+      complete[[i]] = person
+      i = i + 1
+    }
+  }
+  return (complete)
+}
+
 file.remove('.RData')
 print("Removed previous image")
 
@@ -36,9 +62,10 @@ mongo <- mongoDbConnect(credentials[4],credentials[3],strtoi(credentials[2]))
 print("Connected to database")
 
 data.male = parseData(dbGetQuery(mongo, credentials[6], ''))
+data.male.complete = getComplete(data.male)
 print("Imported male data")
-data.female = 4
-data.female = dbGetQuery(mongo, credentials[7], '')
+data.female = parseData(dbGetQuery(mongo, credentials[7], ''))
+data.female.complete = getComplete(data.female)
 print("Imported female data")
 
-save(data.male, data.female, file='.RData')
+save(data.male, data.female, data.male.complete, data.female.complete, file='.RData')

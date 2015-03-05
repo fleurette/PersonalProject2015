@@ -5,26 +5,11 @@
 # 4 is the Tweet Times
 # 5 is the Mean
 
-# Concatenate list of lists
-concatenateArray <- function(ls) {
-  result <- NULL
-  for (l in ls) {
-    result <- c(result,l)
-  }
-  return (result)
-}
-
-getApplyConvolution <- function() {
-  # Concatenate all the intertweet times for male and female
-  intertweet.maleDensity = density(concatenateArray(data.male[1]))
-  intertweet.femaleDensity = density(concatenateArray(data.female[1]))
-  return (intertweet)
-}
-
 # BinSize is a time length given in seconds, compute mean of intertweetTime
 # for tweets falling in each bin
 # Scale down
 # 39 weeks before the endDate
+# Assume there are some tweets between endDate and startDate
 getIntertweetHistogamPregnancy <- function(tweetTimes, binSize, endDate) {
   pregnancyLength <- 39*7*24*3600
   numBins <- pregnancyLength/binSize
@@ -32,11 +17,11 @@ getIntertweetHistogamPregnancy <- function(tweetTimes, binSize, endDate) {
   count <- rep(0,numBins)
   startDate <- endDate - pregnancyLength
   result <- rep(0,numBins)
- 
-  for (tweetTime in tweetTimes) {
-    if(tweetTime < endDate & tweetTime > startDate) {
-      binIndex <- ceiling((tweetTime - startDate)/binSize)
-      total[binIndex] <- total[binIndex] + tweetTime
+
+  for (i in seq(2,length(tweetTimes))) {
+    if(endDate > tweetTimes[i] && startDate < tweetTimes[i]) {
+      binIndex <- ceiling((tweetTimes[i] - startDate)/binSize)
+      total[binIndex] <- tweetTimes[i-1]-tweetTimes[i]
       count[binIndex] <- count[binIndex] + 1
     }
   }
@@ -52,7 +37,43 @@ getIntertweetHistogamPregnancy <- function(tweetTimes, binSize, endDate) {
   areaUnderTheCurve <- sum(result)*binSize
   result <- result/(areaUnderTheCurve)
 
-  return (result)
+  return (list(x=seq(1,numBins),y=result))
 }
 
+# Just count everything
+getTweetCount <- function(tweetTimes, binSize, endDate) {
+  pregnancyLength <- 39*7*24*3600
+  numBins <- pregnancyLength/binSize
+  total <- rep(0,numBins)
+  count <- rep(0,numBins)
+  startDate <- endDate - pregnancyLength
+  result <- rep(0,numBins)
 
+  for (i in seq(1,length(tweetTimes))) {
+    if(endDate > tweetTimes[i] && startDate < tweetTimes[i]) {
+      binIndex <- ceiling((tweetTimes[i] - startDate)/binSize)
+      result[binIndex] <- result[binIndex] + 1
+    }
+  }
+
+  # Scale down
+  areaUnderTheCurve <- sum(result)*binSize
+  result <- result/(areaUnderTheCurve)
+
+  return (list(x=seq(1,numBins),y=result))
+}
+
+getMean <- function(distributions) {
+  numDistributions <- length(distributions)
+  numElements <- length(distributions[[1]][["y"]])
+
+  result <- rep(0,numElements)
+
+  for (distribution in distributions) {
+    result <- result + distribution[["y"]]
+  }
+
+  result <- result / numDistributions
+
+  return (list(x=seq(1,numElements),y=result))
+}
