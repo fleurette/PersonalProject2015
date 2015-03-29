@@ -1,8 +1,12 @@
-deps <- c(
-  "rJava",
-  "RMongo",
-  "jsonlite"
-)
+setup <- function() {
+  deps <- c(
+    "rJava",
+    "RMongo",
+    "jsonlite",
+    "lubridate"
+  )
 
-install.packages(deps)
+  install.packages(deps)
+}
+
 

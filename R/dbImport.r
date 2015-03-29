@@ -1,74 +1,52 @@
 library(rJava)
 library(RMongo)
 library(jsonlite)
+library(lubridate)
 
-parseData <- function(data) {
-  dataPoints = nrow(data)
-  result = list(dataPoints)
-  for (i in seq(1,dataPoints)) {
+# The data is organized in the following way
+# 2 is the tweet times
+# 4 is the dob
+# 6 is the id
+
+data.parse <- function(data) {
+  result <- list(nrow(data))
+  for (i in 1:nrow(data)) {
     # Extract id and dob
-    id = data[i,2]
-    dob = as.numeric(as.POSIXct(data[i,3],format='%a %b %d %H:%M:%S GMT %Y'))
-    if(is.na(dob)) {
-      dob = as.numeric(as.POSIXct(data[i,3],format='%a %b %d %H:%M:%S BST %Y'))
-    }
+    id <- data[i,6]
+    dob <- as.numeric(as.POSIXct(data[i,4],format='%m/%d/%Y'))
     # Extract all tweet dates
-    tweets = fromJSON(data[i,4])
-    numTweets = nrow(tweets)
-    tweetTimes = rep(0,numTweets)
-    for (j in seq(1,numTweets)) {
-      tweetTimes[j] = as.numeric(as.POSIXct(tweets[j,1],format='%Y-%m-%dT%H:%M:%S'))
+    tweets <- fromJSON(data[i,2])
+    tweet.times <- rep(0,nrow(tweets))
+    for (j in 1:nrow(tweets)) {
+      date.parsed <- as.POSIXlt(tweets[j,1],format='%Y-%m-%dT%H:%M:%S')
+      tweet.times[j] <- as.numeric(date.parsed)
+      if(is.na(tweet.times[j])) {
+        date.parsed$hour <- date.parsed$hour+1
+        tweet.times[j] <- as.numeric(date.parsed)
+        if(is.na(tweet.times[j])) {
+          print(tweets[j,1])
+        }
+      }
     }
-    # Complete if DOB - 39 weeks is older than last Tweet
-    complete = (dob-39*7*24*3600) > tweetTimes[numTweets]
     # Create list
-    result[[i]] = list(id=id,dob=dob,tweetTimes=tweetTimes,complete=complete)
+    result[[i]] <- list(id=id,dob=dob,tweet.times=tweet.times)
   }
   return (result)
 }
 
-isComplete <- function(person) {
-  return (!is.na(person["complete"][[1]]) && person["complete"][[1]]==TRUE)
-}
-
-countComplete <- function(data) {
-  numComplete = 0
-  for (person in data) {
-    if (isComplete(person)) {
-      numComplete = numComplete + 1
-    }
-  }
-  return (numComplete)
-}
-
-getComplete <- function(data) {
-  complete = list(countComplete(data))
-  i = 1
-  for (person in data) {
-    if (isComplete(person)) {
-      complete[[i]] = person
-      i = i + 1
-    }
-  }
-  return (complete)
-}
-
-importData <- function(filePath,credentialsPath) {
-  file.remove(filePath)
-  print("Removed previous image")
-  
-  credentials <- scan(file=credentialsPath,what="character",comment.char="#")
+db.import <- function(credentials.path) {
+  # Extract credentials
+  credentials <- scan(file=credentials.path,what="character",comment.char="#")
   mongo <- mongoDbConnect(credentials[4],credentials[3],strtoi(credentials[2]))
   print("Connected to database")
   
-  data.male = parseData(dbGetQuery(mongo, credentials[6], ''))
-  data.male.complete = getComplete(data.male)
+  # Get male data
+  data.male <- data.parse(dbGetQuery(mongo, credentials[6], ''))
   print("Imported male data")
-  data.female = parseData(dbGetQuery(mongo, credentials[7], ''))
-  data.female.complete = getComplete(data.female)
+
+  # Get female data
+  data.female <- data.parse(dbGetQuery(mongo, credentials[7], ''))
   print("Imported female data")
   
-  save(data.male, data.female, data.male.complete, data.female.complete, file=filePath)
+  return(list(data.male=data.male,data.female=data.female))
 }
-
-

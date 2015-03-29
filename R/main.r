@@ -1,47 +1,7 @@
 source("dataPlot.r")
 source("dataAnalyze.r")
 source("dbImport.r")
-
-# binSize and bandWidth are in seconds
-extractInformation <- function(dataComplete,binSize,bandWidth) {
-  numDistributions = length(dataComplete)
-  histograms = list(numDistributions)
-  smoothed = list(numDistributions)
-
-  i = 1
-  for (person in dataComplete) {
-    histograms[[i]] = getTweetCount(person[["tweetTimes"]],binSize,person["dob"][[1]])
-    smoothed[[i]] = ksmooth(histograms[[i]][['x']],histograms[[i]][['y']],"normal",bandwidth=bandWidth)
-    i = i + 1
-  }
-
-  mean = getMean(smoothed)
-
-  return (list(histograms=histograms,smoothed=smoothed,mean=mean))
-}
-
-reload <- function() {
-  importData(raw.path,credentials.path)
-  processData(processed.path)
-}
-
-processData <- function(filePath) {
-  file.remove(filePath)
-  processed.males = extractInformation(data.male.complete,binSize,bandWidth)
-  processed.females = extractInformation(data.female.complete,binSize,bandWidth)
-  save(processed.males,processed.females,file=filePath)
-  load(filePath)
-}
-
-# Model parameters
-binSize = 3600
-bandWidth = 24*3600/binSize
-
-# Adjust BandWidth
-yAxisLength = 2*7*24*3600
-yAxisIncrement = getTimeIncrement(yAxisLength,binSize)
-pregnancyLength <- 39*7*24*3600
-yAxisNumber = floor((pregnancyLength/binSize)/yAxisIncrement)
+source("setup.r")
 
 # File paths
 credentials.path <- "../dbCredentials.dat"
@@ -49,6 +9,50 @@ raw.path <- ".rawData"
 processed.path <- ".processedData"
 figures.path <- "figures/"
 
-# Load previous data
+# Load data from database and save it
+data.reload <- function() {
+  db.data <- db.import(credentials.path)
+
+  data.male <- db.data[['data.male']]
+  data.female <- db.data[['data.female']]
+
+  save(data.male,data.female,file=raw.path)
+}
+
+install <- function() {
+  setup()
+}
+
+# Reload previously saved and processed data
+data.load <- function() {
+  if(!file.exists(raw.path)){
+    data.reload()
+  }
+}
+
+clean.figures <- function() {
+  unlink(figures.path,recursive=TRUE)
+  dir.create(figures.path)
+}
+
+# Process database data, aggregating tweets in bin of bin size (seconds), smoothing down with bandwidth
+process.complete <- function(bin.size,smoothing.bandwidth) {
+  # Process data
+  processed.males <- data.complete.process(data.male,bin.size,smoothing.bandwidth)
+  print("Processed male data")
+  processed.females <- data.complete.process(data.female,bin.size,smoothing.bandwidth)
+  print("Processed female data")
+
+  # Create new directory to vizualise the data
+  dir.name <- strcat(c("bsize_",bin.size,"_smooth_",smoothing.bandwidth))
+  dir.path <- strcat(c(figures.path,dir.name))
+  dir.create(dir.path)
+  dir.create(strcat(c(dir.path,"/males")))
+  dir.create(strcat(c(dir.path,"/females")))
+
+  # Plot and save data
+}
+
+data.load()
+
 load(raw.path)
-load(processed.path)

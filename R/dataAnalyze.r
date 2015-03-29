@@ -1,85 +1,108 @@
-# Data shape
-# 1 is intertweetTime
-# 2 is ids
-# 3 is the DOBs
-# 4 is the Tweet Times
-# 5 is the Mean
+pregnancy.length <- 40*7*24*3600
 
-# BinSize is a time length given in seconds, compute mean of intertweetTime
-# for tweets falling in each bin
-# Scale down
-# 39 weeks before the endDate
-# Assume there are some tweets between endDate and startDate
-pregnancyLength <- 39*7*24*3600
-
-getTimeIncrement <- function(timeLength,binSize) {
-  numBins <- pregnancyLength/binSize
-  timeInterval <- ceiling(numBins/(pregnancyLength/timeLength))
+get.complete <- function(data) {
+  data.complete <- data[lapply(
+    data
+    ,function(l) { 
+      return(l[['dob']]-pregnancy.length > l[['tweet.times']][length(l[['tweet.times']])])
+    }) == TRUE
+  ]
+  return(data.complete)
 }
 
-getIntertweetHistogamPregnancy <- function(tweetTimes, binSize, endDate) {
-  numBins <- pregnancyLength/binSize
-  total <- rep(0,numBins)
-  count <- rep(0,numBins)
-  startDate <- endDate - pregnancyLength
-  result <- rep(0,numBins)
-
-  for (i in seq(2,length(tweetTimes))) {
-    if(endDate > tweetTimes[i] && startDate < tweetTimes[i]) {
-      binIndex <- ceiling((tweetTimes[i] - startDate)/binSize)
-      total[binIndex] <- tweetTimes[i-1]-tweetTimes[i]
-      count[binIndex] <- count[binIndex] + 1
+# Only keep tweet times between dob and start of pregnancy, express them as time spent since start of pregnancy
+get.treated <- function(data) {
+  result <- lapply(
+    data
+    ,function(l) { 
+      tweet.times <- l[['tweet.times']]
+      dob <- l[['dob']]
+      start.date <- dob-pregnancy.length
+      l[['start.date']] <- start.date
+      l[['treated.tweet.times']] <- tweet.times[tweet.times<dob&tweet.times>start.date]-start.date
+      return(l)
     }
-  }
-
-  # Compute average for each bin
-  for (i in seq(1,numBins)) {
-    if(count[i] > 0) {
-      result[i] <- total[i]/count[i]
-    }
-  }
-
-  # Scale down
-  areaUnderTheCurve <- sum(result)*binSize
-  result <- result/(areaUnderTheCurve)
-
-  return (list(x=seq(1,numBins),y=result))
+ )
+  return(result)
 }
 
-# Just count everything
-getTweetCount <- function(tweetTimes, binSize, endDate) {
-  pregnancyLength <- 39*7*24*3600
-  numBins <- pregnancyLength/binSize
-  total <- rep(0,numBins)
-  count <- rep(0,numBins)
-  startDate <- endDate - pregnancyLength
-  result <- rep(0,numBins)
+get.histograms <- function(data,bin.size) {
+  bin.nums <- pregnancy.length/bin.size
+  # Fraction of a month represented by bin size
+  bin.num.month <- bin.size/(4.3*7*24*3600)
+  # Time axis, main unit is month
+  intertweet.time.axis <- seq(from=0,by=bin.num.month,length=bin.nums)
 
-  for (i in seq(1,length(tweetTimes))) {
-    if(endDate > tweetTimes[i] && startDate < tweetTimes[i]) {
-      binIndex <- ceiling((tweetTimes[i] - startDate)/binSize)
-      result[binIndex] <- result[binIndex] + 1
+  result <- lapply(
+    data
+    ,function(l) {
+      count <- rep(0,bin.nums)
+      for(treated.tweet.time in l[['treated.tweet.times']]) {
+        bin.index <- ceiling(treated.tweet.time/bin.size)
+        count[bin.index] <- count[bin.index]+1
+      }
+      # Normalize result
+      area <- sum(count)*bin.size
+      l[['intertweet.axis']] <- intertweet.time.axis
+      l[['intertweet.histogram']] <- count/area
+      l[['bin.size']] <- bin.size
+      l[['bin.nums']] <- bin.nums
+      return(l)
     }
-  }
+  )
 
-  # Scale down
-  areaUnderTheCurve <- max(sum(result)*binSize,1)
-  result <- result/(areaUnderTheCurve)
-
-  return (list(x=seq(1,numBins),y=result))
+  return(result)
 }
 
-getMean <- function(distributions) {
-  numDistributions <- length(distributions)
-  numElements <- length(distributions[[1]][["y"]])
+get.smoothed <- function(data,smoothing.bandwidth) {
+  result <- lapply(
+    data
+    ,function(l) {
+      l[['intertweet.smoothed']] <- ksmooth(
+        l[['intertweet.axis']]
+        ,l[['intertweet.histogram']]
+        ,"normal"
+        ,bandwidth=smoothing.bandwidth
+      )[[2]]
+      return(l)
+    }
+  )
 
-  result <- rep(0,numElements)
+  return(result)
+}
 
-  for (distribution in distributions) {
-    result <- result + distribution[["y"]]
+get.info <- function(data) {
+  # Compute mean
+  total <- data[[1]][['intertweet.smoothed']]
+  for(index in 2:length(data)) {
+    total <- total + data[[index]][['intertweet.smoothed']]
   }
+  mean <- total/length(data)
+  # Compute variance and standard deviation
+  var <- rep(0,length(mean))
+  for(index in 1:length(data)) {
+    var <- var + (mean-data[[index]][['intertweet.smoothed']])^2
+  }
+  sd <- sqrt(var)
 
-  result <- result / numDistributions
+  result <- lapply(
+    data
+    ,function(l) {
+      l[['mean']] <- mean
+      l[['var']] <- var
+      l[['sd']] <- sd
+      return(l)
+    }
+  )
+} 
 
-  return (list(x=seq(1,numElements),y=result))
+# Extract smoothed pdf of data with bin size using smoothing bandwidth, compute mean and standard deviation
+data.complete.process <- function(data,bin.size,smoothing.bandwidth) {
+  data.complete <- get.complete(data)
+  data.treated <- get.treated(data.complete)
+  data.histograms <- get.histograms(data.treated,bin.size)
+  data.smoothed <- get.smoothed(data.histograms,smoothing.bandwidth)
+  data.final <- get.info(data.smoothed)
+
+  return(data.final)
 }

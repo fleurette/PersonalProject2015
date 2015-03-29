@@ -49,7 +49,7 @@ class dbInterface:
     self.rawData.remove({"_id": screenName})
 
   def writeData(self,data,account):
-    data["dob"] = account["dob"]
+    data["dob"] = account["dob"].strftime('%m/%d/%Y')
     if(data["gender"] == "M"): 
       self.maleData.insert(data)
     else:
