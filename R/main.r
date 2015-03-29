@@ -37,6 +37,8 @@ clean.figures <- function() {
 
 # Process database data, aggregating tweets in bin of bin size (seconds), smoothing down with bandwidth
 process.complete <- function(bin.size,smoothing.bandwidth) {
+  data.load()
+  load(raw.path)
   # Process data
   processed.males <- data.complete.process(data.male,bin.size,smoothing.bandwidth)
   print("Processed male data")
@@ -46,13 +48,13 @@ process.complete <- function(bin.size,smoothing.bandwidth) {
   # Create new directory to vizualise the data
   dir.name <- strcat(c("bsize_",bin.size,"_smooth_",smoothing.bandwidth))
   dir.path <- strcat(c(figures.path,dir.name))
+  dir.males <- strcat(c(dir.path,"/males/"))
+  dir.females <- strcat(c(dir.path,"/females/"))
   dir.create(dir.path)
-  dir.create(strcat(c(dir.path,"/males")))
-  dir.create(strcat(c(dir.path,"/females")))
+  dir.create(dir.males)
+  dir.create(dir.females)
 
   # Plot and save data
+  plot.all(processed.males,dir.males)
+  plot.all(processed.females,dir.females)
 }
-
-data.load()
-
-load(raw.path)
