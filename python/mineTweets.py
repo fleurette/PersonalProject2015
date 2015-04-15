@@ -18,14 +18,13 @@ except Exception as e:
 def mineAccounts(profiles,dbInterface,api): 
  for profile in profiles:
    profileId = profile["_id"]
-   if not dbInterface.existsData(profileId)
+   if not dbInterface.existsData(profileId):
      try:
        print "\nTreating user " + profileId + "\nStarting data collection"
        rawTweets = twitterUtils.getTweets(api, profileId)
        data = dataUtils.compileData(rawTweets,profile)
        dbInterface.writeData(data)
-       
-       dbInterface.deleteAccount(profileId)
+       dbInterface.deleteProfile(profileId)
        print "Information correctly collected and recorded for user " + profileId
      except Exception as e:
        print "Failed to collect information for user " + profileId + ". Error was: "
@@ -50,7 +49,7 @@ profiles = []
 while(True):
   # If all threads are unactive and users is empty, query the database
   if(not(reduce(lambda t1,t2: t1["is_alive"]()  and t2["is_alive"](), threads)) and (not len(profiles))):
-    profiles = [profile for profile in dbInterface.getAccounts()]
+    profiles = [profile for profile in dbInterface.getProfiles()]
     # Distribute users over threads
     for thread in threads:
       # If the thread is alive and there are remaining profiles

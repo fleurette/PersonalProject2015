@@ -7,16 +7,17 @@ breakTime = 6*50
 def getTweets(api, accountId):	
   try:
     allTweets = []
-    newTweets = [None]
+    newTweets = api.user_timeline(screen_name=accountId,count=200)
+    allTweets.extend(newTweets)
 
     while len(newTweets) > 0:
-      newTweets = api.user_timeline(screen_name=accountId,count=200,max_id=oldest)
+      newTweets = api.user_timeline(screen_name=accountId,count=200,max_id=allTweets[-1].id - 1)
       allTweets.extend(newTweets)
-      oldest = allTweets[-1].id - 1
 
     return allTweets
 
   except Exception as e:
     print "Rate limit exceeded, going to sleep"
+    print e
     time.sleep(breakTime)
     return getData(api, account)

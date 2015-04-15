@@ -25,12 +25,14 @@ class dbInterface:
   def deleteProfile(self,accountId):
     self.profiles.remove({"_id":accountId})
 
-  def deleteData(self,accountId):
-    self.maleData.remove({"_id": accountId})
-    self.femaleData.remove({"_id": accountId})
-
   def writeData(self,data):
     if(data["gender"] == "M"): 
       self.maleData.insert(data)
     else:
       self.femaleData.insert(data)
+
+  def existsData(self,accountId):
+    return bool(
+      self.maleData.find({"_id": accountId}).count()
+      | self.femaleData.find({"_id": accountId}).count()
+    )
