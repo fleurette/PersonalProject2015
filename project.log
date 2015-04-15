@@ -19,3 +19,13 @@ Resumed work.
 Plot the standard deviation, mean, generate clean graphs for all people with clear units of time and information about people
 
 
+Aldo's meetings:
+CHange axis to days before birth
+Find more data
+Take a look at what happens before and after pregnancy
+Find control data
+Average the data in a different fashion so that it doesn't get weighted down by inactivity
+
+Simply mine data from all women/man, get rid of incomplete/weird profiles by hand
+Align all the data so that distance between data is minimized:
+-- do it using frequency of data using with peaks

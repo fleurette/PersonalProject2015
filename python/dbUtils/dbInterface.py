@@ -7,49 +7,29 @@ class dbInterface:
       content = f.read().splitlines()
     client = MongoClient(content[3], int(content[2]))
     database = client[content[4]]
-    self.rawData = database[content[5]]
-    self.maleData = database[content[6]]
-    self.femaleData = database[content[7]]
-    self.accounts = database[content[8]]
+    self.maleData = database[content[5]]
+    self.femaleData = database[content[6]]
+    self.profiles = database[content[7]]
 
-  def cleanAll(self):
+  def dropAll(self):
     self.femaleData.drop()
     self.maleData.drop()
-    self.rawData.drop()
-    self.accounts.drop()
+    self.profiles.drop()
 
-  def getAccounts(self):
-    return self.accounts.find()
-
-  def writeAccount(self, query):
-    self.accounts.insert(query)
-
-  def deleteAccount(self,screenName):
-    self.accounts.remove({"_id":screenName})
-
-  def writeProfile(self, user, tweets):
-    data = user.__dict__
-    data['_id'] = user.screenName
-    data['tweets'] = map(lambda x:x.__dict__, tweets)
-  
-    self.rawData.insert(data)
-  
-  def getProfile(self, screenName):
-    return self.rawData.find({"_id": screenName})
-  
-  def existsProfile(self, screenName):
-    return self.rawData.find({"_id": screenName}).count()
-  
   def getProfiles(self):
-    return (self.rawData).find()
+    return self.profiles.find()
 
-  def deleteAll(self,screenName):
-    self.maleData.remove({"_id": screenName})
-    self.femaleData.remove({"_id": screenName})
-    self.rawData.remove({"_id": screenName})
+  def writeProfile(self, query):
+    self.profiles.insert(query)
 
-  def writeData(self,data,account):
-    data["dob"] = account["dob"].strftime('%m/%d/%Y')
+  def deleteProfile(self,accountId):
+    self.profiles.remove({"_id":accountId})
+
+  def deleteData(self,accountId):
+    self.maleData.remove({"_id": accountId})
+    self.femaleData.remove({"_id": accountId})
+
+  def writeData(self,data):
     if(data["gender"] == "M"): 
       self.maleData.insert(data)
     else:

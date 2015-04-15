@@ -15,30 +15,20 @@ except Exception as e:
   sys.exit()
 
 # Define thread mining function
-def mineAccounts(accounts,dbInterface, api): 
- for account in accounts:
-   if not dbInterface.existsProfile(account["_id"]):
+def mineAccounts(profiles,dbInterface,api): 
+ for profile in profiles:
+   profileId = profile["_id"]
+   if not dbInterface.existsData(profileId)
      try:
-       print "\nTreating user " + account["_id"] + "\nStarting data collection"
-       rawUser = twitterUtils.getUser(api, account)
-       user = dataUtils.extractProfile(rawUser, account)
-       tweets = twitterUtils.getTweets(api, account)
-       if(not tweets): 
-         dbInterface.deleteAll(account["_id"])
-         dbInterface.deleteAccount(account["_id"])
-         print "Deleting all information for account " + account["_id"]
-         print "DOB before oldest tweet"
-       else:
-         tweets = dataUtils.extractTweets(tweets)
-         data = dataUtils.extractData(user,tweets)
-         dbInterface.writeData(data,account)
-         dbInterface.writeProfile(user, tweets)
-         dbInterface.deleteAccount(account["_id"])
-
-         print "Information correctly collected and recorded for user " + account["_id"]
+       print "\nTreating user " + profileId + "\nStarting data collection"
+       rawTweets = twitterUtils.getTweets(api, profileId)
+       data = dataUtils.compileData(rawTweets,profile)
+       dbInterface.writeData(data)
+       
+       dbInterface.deleteAccount(profileId)
+       print "Information correctly collected and recorded for user " + profileId
      except Exception as e:
-       dbInterface.deleteAll(account["_id"])
-       print "Failed to collect information for user " + account["_id"] + ". Error was: "
+       print "Failed to collect information for user " + profileId + ". Error was: "
        print str(e)
 
 def popFirstN(array, n):
@@ -54,18 +44,18 @@ def popFirstN(array, n):
 threads = [{"is_alive": (lambda: False), "api":api} for api in twitterUtils.getAPIs()]
 cycleLength = 60*20
 maxAccounts = 15
-accounts = []
+profiles = []
 
 # Get persons from collected data
 while(True):
   # If all threads are unactive and users is empty, query the database
-  if(not(reduce(lambda t1,t2: t1["is_alive"]()  and t2["is_alive"](), threads)) and (not len(accounts))):
-    accounts = [account for account in dbInterface.getAccounts()]
+  if(not(reduce(lambda t1,t2: t1["is_alive"]()  and t2["is_alive"](), threads)) and (not len(profiles))):
+    profiles = [profile for profile in dbInterface.getAccounts()]
     # Distribute users over threads
     for thread in threads:
-      # If the thread is alive and there are remaining accounts
-      if(len(accounts) and (not thread["is_alive"]())):
-        selectedAccounts = popFirstN(accounts, maxAccounts)
+      # If the thread is alive and there are remaining profiles
+      if(len(profiles) and (not thread["is_alive"]())):
+        selectedAccounts = popFirstN(profiles, maxAccounts)
         _thread = threading.Thread(target=mineAccounts, args=(selectedAccounts, dbInterface, thread["api"]))
         _thread.start()
         thread["is_alive"] = _thread.is_alive

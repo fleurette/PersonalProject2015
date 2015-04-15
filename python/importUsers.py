@@ -2,53 +2,38 @@ import dbUtils
 import json
 import dateutil.parser
 
-directory = '../csvDataSheets/'
-males = directory + 'twitter_accounts_males.csv'
-females = directory + 'twitter_accounts_females.csv'
+basePath = '../csvDataSheets/'
+malePath = basePath + 'twitter_profiles_males.csv'
+femalePath = basePath + 'twitter_profiles_females.csv'
 
 # Get database
 try:
   dbInterface = dbUtils.dbInterface("../dbCredentials.dat")
-  print "Database correctly initialized"
 except Exception as e:
   print "Program crashed during database initialisation. Exiting."
+  print e
   sys.exit()
 
+def importProfiles(profiles,fieldNames,gender):
+  for profile in profiles:
+    result = {}
+    values = profile.split(',')
+    # Build query string
+    for idx,field in enumerate(fieldNames):
+      result[field] = values[idx]
+    result['gender'] = gender
+    result['dob'] = (dateutil.parser.parse(result['dob'],dayfirst=True)).strftime('%m/%d/%Y')
+    try:
+      dbInterface.writeProfile(result)
+      print "Added user " + result['_id'] + " to the database."
+    except Exception as e:
+      print "Error when adding user " + result['_id'] + " to the database."
+      print e
+
 # Get data, assume same fields for males and females
-with open(males) as f:
-  content = f.read().splitlines()
-  fields = content[0].split(',')
-  maleAccounts = content[1:]
-with open(females) as f:
-  femaleAccounts = f.read().splitlines()[1:]
-
-# Insert every account into users collection
-for account in femaleAccounts:
-  query = {}
-  values = account.split(',')
-  # Build query string
-  for idx,field in enumerate(fields):
-    query[field] = values[idx]
-  query['gender'] = 'F'
-  query['dob'] = dateutil.parser.parse(query['dob'],dayfirst=True)
-  # Insert into database
-  try:
-    dbInterface.writeAccount(query)
-    print "Succesfully added user " + query['_id'] + " to the database."
-  except Exception as e:
-    print e
-
-for account in maleAccounts:
-  query = {}
-  values = account.split(',')
-  # Build query string
-  for idx,field in enumerate(fields):
-    query[field] = values[idx]
-  query['gender'] = 'M'
-  query['dob'] = dateutil.parser.parse(query['dob'],dayfirst=True)
-  # Insert into database
-  try:
-    dbInterface.writeAccount(query)
-    print "Succesfully added user " + query['_id'] + " to the database."
-  except Exception as e:
-    print e
+with open(malePath) as f:
+  fileContent = f.read().splitlines()
+  importProfiles(fileContent[1:],fileContent[0].split(','),'M')
+with open(femalePath) as f:
+  fileContent = f.read().splitlines()
+  importProfiles(fileContent[1:],fileContent[0].split(','),'F')

@@ -57,4 +57,6 @@ process.complete <- function(bin.size,smoothing.bandwidth) {
   # Plot and save data
   plot.all(processed.males,dir.males)
   plot.all(processed.females,dir.females)
+
+  return(list(processed.males=processed.males,processed.females=processed.females))
 }
