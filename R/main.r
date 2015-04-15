@@ -3,11 +3,14 @@ source("dataAnalyze.r")
 source("dbImport.r")
 source("setup.r")
 
+library(R.matlab)
+
 # File paths
 credentials.path <- "../dbCredentials.dat"
 raw.path <- ".rawData"
 processed.path <- ".processedData"
 figures.path <- "figures/"
+matlab <- "data.mat"
 
 # Load data from database and save it
 data.reload <- function() {
@@ -57,6 +60,7 @@ process.complete <- function(bin.size,smoothing.bandwidth) {
   # Plot and save data
   plot.all(processed.males,dir.males)
   plot.all(processed.females,dir.females)
+  save(processed.males,processed.females,file=processed.path)
 
   return(list(processed.males=processed.males,processed.females=processed.females))
 }

@@ -1,21 +1,24 @@
 library(rJava)
 library(RMongo)
 library(jsonlite)
-library(lubridate)
 
 # The data is organized in the following way
-# 2 is the tweet times
-# 4 is the dob
-# 6 is the id
+# 1 is the tweet times
+# 2 is the gender
+# 3 is the dob
+# 4 is the id
 
 data.parse <- function(data) {
   result <- list(nrow(data))
   for (i in 1:nrow(data)) {
     # Extract id and dob
-    id <- data[i,6]
-    dob <- as.numeric(as.POSIXct(data[i,4],format='%m/%d/%Y'))
+    id <- data[i,4]
+    dob <- as.numeric(as.POSIXct(data[i,3],format='%m/%d/%Y'))
+    if(is.na(dob)) {
+      print(dob)
+    }
     # Extract all tweet dates
-    tweets <- fromJSON(data[i,2])
+    tweets <- fromJSON(data[i,1])
     tweet.times <- rep(0,nrow(tweets))
     for (j in 1:nrow(tweets)) {
       date.parsed <- as.POSIXlt(tweets[j,1],format='%Y-%m-%dT%H:%M:%S')
@@ -23,9 +26,9 @@ data.parse <- function(data) {
       if(is.na(tweet.times[j])) {
         date.parsed$hour <- date.parsed$hour+1
         tweet.times[j] <- as.numeric(date.parsed)
-        if(is.na(tweet.times[j])) {
-          print(tweets[j,1])
-        }
+      }
+      if(is.na(tweet.times[j])) {
+        print(tweets[j,1])
       }
     }
     # Create list
@@ -41,11 +44,11 @@ db.import <- function(credentials.path) {
   print("Connected to database")
   
   # Get male data
-  data.male <- data.parse(dbGetQuery(mongo, credentials[6], ''))
+  data.male <- data.parse(dbGetQuery(mongo, credentials[5], ''))
   print("Imported male data")
 
   # Get female data
-  data.female <- data.parse(dbGetQuery(mongo, credentials[7], ''))
+  data.female <- data.parse(dbGetQuery(mongo, credentials[6], ''))
   print("Imported female data")
   
   return(list(data.male=data.male,data.female=data.female))

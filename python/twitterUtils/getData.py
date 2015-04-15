@@ -20,4 +20,4 @@ def getTweets(api, accountId):
     print "Rate limit exceeded, going to sleep"
     print e
     time.sleep(breakTime)
-    return getData(api, account)
+    return getTweets(api, accountId)
