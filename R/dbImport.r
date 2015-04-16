@@ -14,9 +14,6 @@ data.parse <- function(data) {
     # Extract id and dob
     id <- data[i,4]
     dob <- as.numeric(as.POSIXct(data[i,3],format='%m/%d/%Y'))
-    if(is.na(dob)) {
-      print(dob)
-    }
     # Extract all tweet dates
     tweets <- fromJSON(data[i,1])
     tweet.times <- rep(0,nrow(tweets))

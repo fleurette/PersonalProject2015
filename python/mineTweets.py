@@ -19,11 +19,15 @@ def mineAccounts(profiles,dbInterface,api):
   for profile in profiles:
     profileId = profile["_id"]
     if not dbInterface.existsData(profileId):
-      print "\nStarting data collection for " + profileId
-      rawTweets = twitterUtils.getTweets(api, profileId)
-      data = dataUtils.compileData(rawTweets,profile)
-      dbInterface.writeData(data)
-      print "\nData collected and saved for " + profileId
+      try:
+        print "\nStarting data collection for " + profileId
+        rawTweets = twitterUtils.getTweets(api, profileId)
+        data = dataUtils.compileData(rawTweets,profile)
+        dbInterface.writeData(data)
+        print "\nData collected and saved for " + profileId
+      except Exception as e:
+        print "Caught exception"
+        print e
     else:
       print "\n" + profileId + " already exists in database, skipping..."
     dbInterface.deleteProfile(profileId)

@@ -22,7 +22,8 @@ def importProfiles(profiles,fieldNames,gender):
     for idx,field in enumerate(fieldNames):
       result[field] = values[idx]
     result['gender'] = gender
-    result['dob'] = (dateutil.parser.parse(result['dob'],dayfirst=True)).strftime('%m/%d/%Y')
+    if(len(result['dob']) is not 0):
+      result['dob'] = (dateutil.parser.parse(result['dob'],dayfirst=True)).strftime('%m/%d/%Y')
     try:
       dbInterface.writeProfile(result)
       print "Added user " + result['_id'] + " to the database."
