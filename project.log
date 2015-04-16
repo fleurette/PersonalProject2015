@@ -30,12 +30,13 @@ Simply mine data from all women/man, get rid of incomplete/weird profiles by han
 Align all the data so that distance between data is minimized:
 -- do it using frequency of data using with peaks
 
-Verify all profiles * pending
-Check data is correctly loaded in R files
-Extend data to one month before/after
+----Verify all profiles * pending
+----Check data is correctly loaded in R files
+----Extend data to one month before/after
 Change formula when computing mean so that long zero streaks are not treated
 * At this point leave room for data alignment later
 Compute mean and all :) Add vertical lines 
 Compute same graphs for normal data
 Implement the graphs Aldo wanted
 Take a look at periodicity test
+Look at signal autocorrelation with acf do determine period for females :)

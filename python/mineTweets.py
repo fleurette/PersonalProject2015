@@ -16,19 +16,19 @@ except Exception as e:
 
 # Define thread mining function
 def mineAccounts(profiles,dbInterface,api): 
- for profile in profiles:
-   profileId = profile["_id"]
-   if not dbInterface.existsData(profileId):
-     try:
-       print "\nTreating user " + profileId + "\nStarting data collection"
-       rawTweets = twitterUtils.getTweets(api, profileId)
-       data = dataUtils.compileData(rawTweets,profile)
-       dbInterface.writeData(data)
-       dbInterface.deleteProfile(profileId)
-       print "Information correctly collected and recorded for user " + profileId
-     except Exception as e:
-       print "Failed to collect information for user " + profileId + ". Error was: "
-       print str(e)
+  for profile in profiles:
+    profileId = profile["_id"]
+    if not dbInterface.existsData(profileId):
+      print "\nStarting data collection for " + profileId
+      rawTweets = twitterUtils.getTweets(api, profileId)
+      data = dataUtils.compileData(rawTweets,profile)
+      dbInterface.writeData(data)
+      print "\nData collected and saved for " + profileId
+    else:
+      print "\n" + profileId + " already exists in database, skipping..."
+    dbInterface.deleteProfile(profileId)
+
+
 
 def popFirstN(array, n):
   i = 0

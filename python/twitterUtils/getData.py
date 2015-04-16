@@ -1,7 +1,7 @@
 import time
 import tweepy
 
-breakTime = 6*50
+breakTime = 10*50
 
 # Date is the minimum date we want to reach when mining tweets
 def getTweets(api, accountId):	
