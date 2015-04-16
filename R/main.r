@@ -1,7 +1,6 @@
 source("dataPlot.r")
-source("dataAnalyze.r")
+source("profilesAnalyze.r")
 source("dbImport.r")
-source("setup.r")
 
 library(R.matlab)
 
@@ -10,57 +9,55 @@ credentials.path <- "../dbCredentials.dat"
 raw.path <- ".rawData"
 processed.path <- ".processedData"
 figures.path <- "figures/"
-matlab <- "data.mat"
+matlab.path <- "data.mat"
 
-# Load data from database and save it
-data.reload <- function() {
-  db.data <- db.import(credentials.path)
+setup <- function() {
+  deps <- c(
+    "rJava"
+    ,"RMongo"
+    ,"jsonlite"
+    ,"lubridate"
+    ,"R.matlab"
+  )
 
-  data.male <- db.data[['data.male']]
-  data.female <- db.data[['data.female']]
-
-  save(data.male,data.female,file=raw.path)
-}
-
-install <- function() {
-  setup()
+  install.packages(deps)
 }
 
 # Reload previously saved and processed data
 data.load <- function() {
   if(!file.exists(raw.path)){
-    data.reload()
+    db.data <- db.import(credentials.path)
+    males <- db.data$males
+    females <- db.data$females
+    save(males,females,file=raw.path)
   }
+  load(raw.path)
 }
 
-clean.figures <- function() {
+# Delete all previously created figures
+data.reset <- function() {
   unlink(figures.path,recursive=TRUE)
+  unlink(raw.path)
+  unlink(processed.path)
+  unlink(matlab.path)
   dir.create(figures.path)
 }
 
 # Process database data, aggregating tweets in bin of bin size (seconds), smoothing down with bandwidth
-process.complete <- function(bin.size,smoothing.bandwidth) {
+data.analyze <- function(bin.size,smoothing.bandwidth) {
   data.load()
-  load(raw.path)
   # Process data
-  processed.males <- data.complete.process(data.male,bin.size,smoothing.bandwidth)
+  males.analyzed <- profiles.analyze(males,bin.size,smoothing.bandwidth)
   print("Processed male data")
-  processed.females <- data.complete.process(data.female,bin.size,smoothing.bandwidth)
+  females.analyzed <- profiles.analyze(females,bin.size,smoothing.bandwidth)
   print("Processed female data")
-
-  # Create new directory to vizualise the data
-  dir.name <- strcat(c("bsize_",bin.size,"_smooth_",smoothing.bandwidth))
-  dir.path <- strcat(c(figures.path,dir.name))
-  dir.males <- strcat(c(dir.path,"/males/"))
-  dir.females <- strcat(c(dir.path,"/females/"))
+  # Create new directories to vizualise the data
+  dir.path <- strcat(c(figures.path,"bsize_",bin.size,"_smooth_",smoothing.bandwidth))
   dir.create(dir.path)
-  dir.create(dir.males)
-  dir.create(dir.females)
-
+  dir.create(strcat(c(dir.path,"/males/")))
+  dir.create(strcat(c(dir.path,"/females/")))
   # Plot and save data
-  plot.all(processed.males,dir.males)
-  plot.all(processed.females,dir.females)
-  save(processed.males,processed.females,file=processed.path)
-
-  return(list(processed.males=processed.males,processed.females=processed.females))
+  #plot.all(processed.males,dir.males)
+  #plot.all(processed.females,dir.females)
+  #save(processed.males,processed.females,file=processed.path)
 }

@@ -39,14 +39,12 @@ db.import <- function(credentials.path) {
   credentials <- scan(file=credentials.path,what="character",comment.char="#")
   mongo <- mongoDbConnect(credentials[4],credentials[3],strtoi(credentials[2]))
   print("Connected to database")
-  
   # Get male data
-  data.male <- data.parse(dbGetQuery(mongo, credentials[5], ''))
+  males <- data.parse(dbGetQuery(mongo, credentials[5], ''))
   print("Imported male data")
-
   # Get female data
-  data.female <- data.parse(dbGetQuery(mongo, credentials[6], ''))
+  females <- data.parse(dbGetQuery(mongo, credentials[6], ''))
   print("Imported female data")
   
-  return(list(data.male=data.male,data.female=data.female))
+  return(list(males=males,females=females))
 }

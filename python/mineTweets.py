@@ -34,34 +34,26 @@ def mineAccounts(profiles,dbInterface,api):
 
 
 
-def popFirstN(array, n):
-  i = 0
+def pop(array, n):
   result = []
-  while i < n and len(array):
+  for i in range(min(n,len(array))):
     result.append(array.pop())
-    i = i + 1
-   
   return result
 
 # Configurations
 threads = [{"is_alive": (lambda: False), "api":api} for api in twitterUtils.getAPIs()]
 cycleLength = 60*20
-maxAccounts = 15
-profiles = []
+maxAccounts = 30
 
 # Get persons from collected data
 while(True):
   # If all threads are unactive and users is empty, query the database
-  if(not(reduce(lambda t1,t2: t1["is_alive"]()  and t2["is_alive"](), threads)) and (not len(profiles))):
+  noneAlive = (reduce(lambda t1,t2: (not t1["is_alive"]())  and (not t2["is_alive"]()), threads))
+  if(noneAlive):
     profiles = [profile for profile in dbInterface.getProfiles()]
-    # Distribute users over threads
     for thread in threads:
-      # If the thread is alive and there are remaining profiles
-      if(len(profiles) and (not thread["is_alive"]())):
-        selectedAccounts = popFirstN(profiles, maxAccounts)
-        _thread = threading.Thread(target=mineAccounts, args=(selectedAccounts, dbInterface, thread["api"]))
-        _thread.start()
-        thread["is_alive"] = _thread.is_alive
-  
-  print "Going to sleep for " + str(cycleLength) + " seconds."
+      threadProfiles = pop(profiles,maxAccounts)
+      _thread = threading.Thread(target=mineAccounts, args=(threadProfiles, dbInterface, thread["api"]))
+      _thread.start()
+      thread["is_alive"] = _thread.is_alive
   time.sleep(cycleLength)
