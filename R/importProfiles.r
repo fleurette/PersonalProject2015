@@ -8,7 +8,7 @@ library(jsonlite)
 # 3 is the dob
 # 4 is the id
 
-data.parse <- function(data) {
+import.profile <- function(data) {
   result <- list(nrow(data))
   for (i in 1:nrow(data)) {
     # Extract id and dob
@@ -34,16 +34,16 @@ data.parse <- function(data) {
   return (result)
 }
 
-db.import <- function(credentials.path) {
+import.profiles <- function(credentials.path) {
   # Extract credentials
   credentials <- scan(file=credentials.path,what="character",comment.char="#")
   mongo <- mongoDbConnect(credentials[4],credentials[3],strtoi(credentials[2]))
   print("Connected to database")
   # Get male data
-  males <- data.parse(dbGetQuery(mongo, credentials[5], ''))
+  males <- import.profile(dbGetQuery(mongo, credentials[5], ''))
   print("Imported male data")
   # Get female data
-  females <- data.parse(dbGetQuery(mongo, credentials[6], ''))
+  females <- import.profile(dbGetQuery(mongo, credentials[6], ''))
   print("Imported female data")
   
   return(list(males=males,females=females))
