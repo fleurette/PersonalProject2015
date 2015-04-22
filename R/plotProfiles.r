@@ -10,29 +10,37 @@ all.plot <- function(analyzed.profiles,path) {
   pregnant <- analyzed.profiles$pregnant
 
   # Plot summary
-  pdf(paste(path,"summary.pdf",sep=''))
+  pdf(paste(path,"summary_test.pdf",sep=''))
   summary.plot(summarized.test,"test")
   summary.plot(summarized.test.adjusted,"adjusted test")
+  dev.off()
+  pdf(paste(path,"summary_pregnant.pdf",sep=''))
   summary.plot(summarized.pregnant,"pregnant")
   summary.plot(summarized.pregnant.adjusted,"pregnant adjusted")
   dev.off()
 
   # Plot histogram of tweet counts
-  pdf(paste(path,"histograms.pdf",sep=''))
+  pdf(paste(path,"histograms_test.pdf",sep=''))
   histograms.plot(test,'test')
+  dev.off()
+  pdf(paste(path,"histograms_pregnant.pdf",sep=''))
   histograms.plot(pregnant,'pregnant')
   dev.off()
 
   # Plot smoothed tweet count with mean
-  pdf(paste(path,"smoothed.pdf",sep=''))
-  smoothed.plot(pregnant,'pregnant',summarized.pregnant$mean)
+  pdf(paste(path,"smoothed_test.pdf",sep=''))
   smoothed.plot(test,'test',summarized.test$mean)
+  dev.off()
+  pdf(paste(path,"smoothed_pregnant.pdf",sep=''))
+  smoothed.plot(pregnant,'pregnant',summarized.pregnant$mean)
   dev.off()
 
   # Plot smoothed tweet count with adjusted mean
-  pdf(paste(path,"smoothed_adjusted.pdf",sep=''))
-  smoothed.plot(pregnant,'pregnant',summarized.pregnant.adjusted$mean)
+  pdf(paste(path,"smoothed_adjusted_test.pdf",sep=''))
   smoothed.plot(test,'test',summarized.test.adjusted$mean)
+  dev.off()
+  pdf(paste(path,"smoothed_adjusted_pregnant.pdf",sep=''))
+  smoothed.plot(pregnant,'pregnant',summarized.pregnant.adjusted$mean)
   dev.off()
 }
 
@@ -45,7 +53,17 @@ smoothed.plot <- function(profiles,type,profiles.mean) {
       ,ylab="Probability distribution function of tweet"
       ,type='l'
     )
-    lines(x=time.axis,y=profiles.mean,col="red",lty=2)
+    lines(
+      x=profile$time.axis
+      ,y=profiles.mean
+      ,col="red"
+      ,lty=2
+    )
+    abline(v=c(
+      profile$start.dob
+      ,profile$end.dob
+      ,col='blue'
+    ))
     legend(
       "topleft"
       ,c("Mean","pdf")
@@ -63,11 +81,15 @@ histograms.plot <- function(profiles,type) {
     plot(
       x=profile$time.axis
       ,y=profile$tweet.count
-      ,ylim=c(0.9,max(profile$tweet.count))
       ,xlab="Time before date of birth in days"
       ,ylab="Number of tweets"
       ,type="h"
     )
+    abline(v=c(
+      profile$start.dob
+      ,profile$end.dob
+      ,col='blue'
+    ))
     title(main=paste("Tweet count histogram for",type,"user",profile$id))
   }
 }

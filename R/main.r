@@ -68,7 +68,10 @@ analyze <- function(bin.size,smoothing.bandwidth) {
     ,analyzed.males=analyzed.males
     ,analyzed.females=analyzed.females
   )
+  print("Saved data")
   # Plot data
   all.plot(analyzed.males,paste(dir.path,"/males/",sep=''))
+  print("Plotted male data")
   all.plot(analyzed.females,paste(dir.path,"/females/",sep=''))
+  print("Plotted female data")
 }

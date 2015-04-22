@@ -45,10 +45,13 @@ analyze.profiles <- function(data,bin.size,smoothing.bandwidth) {
 
 summarize.profiles <- function(profiles,time.axis) {
   # Compute mean, sd, variance
+  profiles.mean <- apply(profiles,1,mean,na.rm=TRUE)
+  profiles.var <- apply(profiles,1,var,na.rm=TRUE)
+  profiles.sd <- sqrt(profiles.var)
   return(list(
-    mean=apply(profiles,1,mean,na.rm=TRUE)
-    ,var=apply(profiles,1,var,na.rm=TRUE)
-    ,sd=sqrt(profiles.var)
+    mean=profiles.mean
+    ,var=profiles.var
+    ,sd=profiles.sd
     ,time.axis=time.axis
   ))
 }
@@ -71,6 +74,8 @@ analyze.profile <- function(profile,time.axis,bin.size,smoothing.bandwidth) {
   profile$tweet.times.indices <- ceiling((profile$selected.tweet.times-profile$start.date)/bin.size)
   # Add time axis
   profile$time.axis <- time.axis
+  profile$start.dob <- profile$time.axis[30]
+  profile$end.dob <- profile$time.axis[length(profile$time.axis)-30]
   # Build histogram
   profile$tweet.count <- rep(0,length(time.axis))
   for(tweet.index in profile$tweet.times.indices) {
@@ -83,7 +88,27 @@ analyze.profile <- function(profile,time.axis,bin.size,smoothing.bandwidth) {
     ,"normal"
     ,bandwidth=smoothing.bandwidth
   )[[2]]
-  profile$tweet.count.smoothed <- tweet.count.smoothed/(sum(tweet.count.smoothed)*bin.size)
+  # If some values are NA warn user about it and restore histogram instead
+  while(any(is.nan(tweet.count.smoothed))) {
+    smoothing.bandwidth <- smoothing.bandwidth + 0.1
+    print(paste(
+      "Smoothing coefficient too low, smoothing with higher smoothing bandwidth"
+      ,smoothing.bandwidth
+    ))
+    tweet.count.smoothed <- ksmooth(
+      profile$time.axis
+      ,profile$tweet.count
+      ,"normal"
+      ,bandwidth=smoothing.bandwidth
+    )[[2]]
+  }
+  # Normalize smoothing count
+  normalizer <- sum(tweet.count.smoothed)*bin.size
+  if(normalizer>0) {
+    profile$tweet.count.smoothed <- tweet.count.smoothed/normalizer
+  } else {
+    profile$tweet.count.smoothed <- tweet.count.smoothed
+  }
   # Compute adjusted tweet count smoothed curve, normalize it
   zero.indices <- profile$tweet.count.smoothed==0
   normalizer.coefficient <- (length(zero.indices)-sum(as.numeric(zero.indices)))/length(zero.indices)

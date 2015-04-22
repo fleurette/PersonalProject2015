@@ -19,7 +19,8 @@ def getTweets(api, accountId):
   except Exception as e:
     if(str(e)=="Not authorized."):
       raise Exception(accountId + " is a private profile, skipping.")
-    print "Rate limit exceeded, going to sleep"
+    print "Rate limit exceeded, going to sleep while treating " + accountId
+    #[{u'message': u'Sorry, that page does not exist.', u'code': 34}]
     print e
     time.sleep(breakTime)
     return getTweets(api, accountId)
