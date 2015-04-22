@@ -7,7 +7,7 @@ analyze.profiles <- function(data,bin.size,smoothing.bandwidth) {
   # Compute x time axis
   num.bins <- ceiling((pregnancy.length+2*one.month)/bin.size)
   num.bins.day <- one.day/bin.size
-  time.axis <- seq(from=(-pregnancy.length-one.month)/one.day,by=num.bins.day,length=num.bins)
+  time.axis <- seq(from=(-pregnancy.length-one.month)/one.day,to=one.month/one.day,length=num.bins)
   # Analyze profiles
   analyzed.profiles <- (lapply(
     data
@@ -74,8 +74,8 @@ analyze.profile <- function(profile,time.axis,bin.size,smoothing.bandwidth) {
   profile$tweet.times.indices <- ceiling((profile$selected.tweet.times-profile$start.date)/bin.size)
   # Add time axis
   profile$time.axis <- time.axis
-  profile$start.dob <- profile$time.axis[30]
-  profile$end.dob <- profile$time.axis[length(profile$time.axis)-30]
+  profile$start.dob <- profile$time.axis[which.min(abs(profile$time.axis+279))]
+  profile$end.dob <- profile$time.axis[which.min(abs(profile$time.axis))]
   # Build histogram
   profile$tweet.count <- rep(0,length(time.axis))
   for(tweet.index in profile$tweet.times.indices) {
