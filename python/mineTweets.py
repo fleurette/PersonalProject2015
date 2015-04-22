@@ -33,7 +33,6 @@ def mineAccounts(profiles,dbInterface,api):
     dbInterface.deleteProfile(profileId)
 
 
-
 def pop(array, n):
   result = []
   for i in range(min(n,len(array))):
@@ -42,18 +41,21 @@ def pop(array, n):
 
 # Configurations
 threads = [{"is_alive": (lambda: False), "api":api} for api in twitterUtils.getAPIs()]
-cycleLength = 60*20
+cycleLength = 10
 maxAccounts = 30
+profiles = []
 
-# Get persons from collected data
 while(True):
-  # If all threads are unactive and users is empty, query the database
-  noneAlive = (reduce(lambda t1,t2: (not t1["is_alive"]())  and (not t2["is_alive"]()), threads))
-  if(noneAlive):
+  # Update profile if necessary
+  if len(profiles)==0:
     profiles = [profile for profile in dbInterface.getProfiles()]
-    for thread in threads:
-      threadProfiles = pop(profiles,maxAccounts)
-      _thread = threading.Thread(target=mineAccounts, args=(threadProfiles, dbInterface, thread["api"]))
+  for thread in threads:
+    # If thread has died replace it with a new thread
+    if not thread["is_alive"]():
+      _thread = threading.Thread(
+        target=mineAccounts
+        ,args=[pop(profiles,maxAccounts),dbInterface,thread["api"]]
+      )
       _thread.start()
       thread["is_alive"] = _thread.is_alive
   time.sleep(cycleLength)

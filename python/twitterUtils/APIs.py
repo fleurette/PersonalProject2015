@@ -12,6 +12,12 @@ accounts = [
   "consumerSecret":"kkDzxBZRWargVpWJTWLdNgNF4akZgw9b7tdOecdQTThniV9tuH",
   "accessKey":"3022041676-ONruCp9ypnceIAmVVTQv6HZh6HXSSxusrIg5ttM",
   "accessSecret":"AMEcIKQNXicNvrv5X58bkZdtZMci8BWI8UQEdOB803Rit"
+},
+{
+  "consumerKey":"e3Andnk8YgW9EBJn9doPiFsy8",
+  "consumerSecret":"VWwW9EwMS5Fir5VpqkIssnhxtODHGBhgfCKr5kWwiPe2PdmyiF",
+  "accessKey":"3193014111-OPdw9vFWdDAM02xVUdVh2kkNn4pwa1Rixlos9AY",
+  "accessSecret":"9zuO5fLejGooBrhMc2KxczyZfbv6WrhPkg1h3yqsHTosB"
 }
 ]
 
