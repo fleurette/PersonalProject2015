@@ -59,11 +59,10 @@ smoothed.plot <- function(profiles,type,profiles.mean) {
       ,col="red"
       ,lty=2
     )
-    abline(v=c(
-      profile$start.dob
-      ,profile$end.dob
-      ,col='blue'
-    ))
+    abline(
+      v=c(profile$start.dob,profile$end.dob)
+      ,col="blue"
+    )
     legend(
       "topleft"
       ,c("Mean","pdf")
@@ -85,11 +84,10 @@ histograms.plot <- function(profiles,type) {
       ,ylab="Number of tweets"
       ,type="h"
     )
-    abline(v=c(
-      profile$start.dob
-      ,profile$end.dob
-      ,col='blue'
-    ))
+    abline(
+      v=c(profile$start.dob,profile$end.dob)
+      ,col="blue"
+    )
     title(main=paste("Tweet count histogram for",type,"user",profile$id))
   }
 }
