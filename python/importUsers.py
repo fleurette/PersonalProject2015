@@ -2,7 +2,7 @@ import dbUtils
 import json
 import dateutil.parser
 
-basePath = '../csvDataSheets/'
+basePath = 'csvDataSheets/'
 malePath = basePath + 'twitter_profiles_males.csv'
 femalePath = basePath + 'twitter_profiles_females.csv'
 

@@ -17,7 +17,7 @@ dependencies <- c(
 credentials.path <- "../dbCredentials.dat"
 raw.path <- ".rawData"
 figures.path <- "figures/"
-matlab.path <- "profiles.mat"
+matlab.path <- "summary.mat"
 r.path <- "profiles.data"
 
 setup <- function() {
@@ -42,6 +42,24 @@ reset <- function() {
   dir.create(figures.path)
 }
 
+classify.test <- function(analyzed.males,analyzed.females) {
+  # Build data
+  num.males <- length(analyzed.males$test)+length(analyzed.males$pregnant)
+  num.females <- length(analyzed.females$test)+length(analyzed.females$pregnant)
+  num.observations <- num.males+num.females
+  num.features <- 5
+  data <- list(
+    class=c(rep(0,num.males),rep(1,num.females))
+    ,feats=rbind(
+      t(sapply(lapply(analyzed.males$test,'[[','acf'),'[[','acf'))
+      ,t(sapply(lapply(analyzed.males$pregnant,'[[','acf'),'[[','acf'))
+      ,t(sapply(lapply(analyzed.females$test,'[[','acf'),'[[','acf'))
+      ,t(sapply(lapply(analyzed.females$pregnant,'[[','acf'),'[[','acf'))
+    )
+  )
+
+}
+
 # Process database data, aggregating tweets in bin of bin size (seconds), smoothing down with bandwidth
 analyze <- function(bin.size,smoothing.bandwidth) {
   import()
@@ -57,6 +75,7 @@ analyze <- function(bin.size,smoothing.bandwidth) {
   dir.create(paste(dir.path,"/males/",sep=''))
   dir.create(paste(dir.path,"/females/",sep=''))
   dir.create(paste(dir.path,"/data/",sep=''))
+  dir.create(paste(dir.path,"/final/",sep=''))
   # Save processed data
   save(
     analyzed.males
@@ -65,8 +84,19 @@ analyze <- function(bin.size,smoothing.bandwidth) {
   )
   writeMat(
     paste(dir.path,"/data/",matlab.path,sep='')
-    ,analyzed.males=analyzed.males
-    ,analyzed.females=analyzed.females
+    # Males test
+    ,testMales=analyzed.males$summarized.test
+    ,testAdjustedMales=analyzed.males$summarized.test.adjusted
+    # Males pregnant
+    ,pregnantMales=analyzed.males$summarized.pregnant
+    ,pregnantAdjustedMales=analyzed.males$summarized.pregnant.adjusted
+    # Females test
+    ,testFemales=analyzed.females$summarized.test
+    ,testAdjustedFemales=analyzed.females$summarized.test.adjusted
+    # Females pregnant
+    ,pregnantFemales=analyzed.females$summarized.pregnant
+    ,pregnantAdjustedFemales=analyzed.females$summarized.pregnant.adjusted
+    ,path=path
   )
   print("Saved data")
   # Plot data
@@ -74,4 +104,7 @@ analyze <- function(bin.size,smoothing.bandwidth) {
   print("Plotted male data")
   all.plot(analyzed.females,paste(dir.path,"/females/",sep=''))
   print("Plotted female data")
+  # Plot summary
+  final.plot(analyzed.males,analyzed.females,paste(dir.path,"/final/",sep=''))
+  print("Plotted final plots")
 }

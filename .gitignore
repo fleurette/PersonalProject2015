@@ -2,3 +2,4 @@
 *.pyw
 .*
 data/*
+R/figures
