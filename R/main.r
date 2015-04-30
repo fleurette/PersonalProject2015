@@ -18,6 +18,7 @@ credentials.path <- "../dbCredentials.dat"
 raw.path <- ".rawData"
 figures.path <- "figures/"
 matlab.path <- "summary.mat"
+extracted.path <- "extracted.data"
 r.path <- "profiles.data"
 
 setup <- function() {
@@ -42,14 +43,15 @@ reset <- function() {
   dir.create(figures.path)
 }
 
-classify.test <- function(analyzed.males,analyzed.females) {
+extract.data <- function(analyzed.males,analyzed.females) {
   # Build data
   num.males <- length(analyzed.males$test)+length(analyzed.males$pregnant)
   num.females <- length(analyzed.females$test)+length(analyzed.females$pregnant)
+  num.females.pregnant <- length(analyzed.females$pregnant)
   num.observations <- num.males+num.females
   num.features <- 5
   # All smoothed
-  data.genres <- list(
+  smoothed.adjusted <- list(
     class=c(rep(0,num.males),rep(1,num.females))
     ,feats=rbind(
       t(sapply(analyzed.males$test,'[[','tweet.count.smoothed.adjusted'))
@@ -58,8 +60,8 @@ classify.test <- function(analyzed.males,analyzed.females) {
       ,t(sapply(analyzed.females$pregnant,'[[','tweet.count.smoothed.adjusted'))
     )
   )
-  # All acf
-  data.acf <- list(
+  # All acf except those that are completely empty
+  acf.genres <- list(
     class=c(rep(0,num.males),rep(1,num.females))
     ,feats=rbind(
       t(sapply(lapply(analyzed.males$test,'[[','acf'),'[[','acf'))
@@ -68,18 +70,47 @@ classify.test <- function(analyzed.males,analyzed.females) {
       ,t(sapply(lapply(analyzed.females$pregnant,'[[','acf'),'[[','acf'))
     )
   )
-  # Pregnant
-  data.pregnant <- list(
-    class=c(rep(0,length(analyzed.females$test)),rep(1,length(analyzed.females$pregnant)))
+  acf.processed <- acf.genres
+  acf.processed$feats <- matrix(
+    data=unlist(apply(
+      acf.processed$feats
+      ,1
+      ,function(row) {
+        row[is.na(row)] <- -Inf
+        sort(row,index.return=TRUE,decreasing=TRUE)$ix
+      }
+    ))  
+    ,nrow=nrow(acf.processed$feats)
+    ,ncol=ncol(acf.processed$feats)
+  )
+  # Pregnant acf
+  acf.pregnant <- list(
+    class=c(rep(0,num.females.pregnant),rep(1,num.observations-num.females.pregnant))
     ,feats=rbind(
-      t(sapply(analyzed.females$test,'[[','tweet.count.smoothed.adjusted'))
-      ,t(sapply(analyzed.females$pregnant,'[[','tweet.count.smoothed.adjusted'))
+      t(sapply(lapply(analyzed.females$pregnant,'[[','acf'),'[[','acf'))
+      ,t(sapply(lapply(analyzed.males$test,'[[','acf'),'[[','acf'))
+      ,t(sapply(lapply(analyzed.males$pregnant,'[[','acf'),'[[','acf'))
+      ,t(sapply(lapply(analyzed.females$test,'[[','acf'),'[[','acf'))
     )
   )
-  # Acf smoothed versus 
+  acf.pregnant$feats <- matrix(
+    data=unlist(apply(
+      acf.pregnant$feats
+      ,1
+      ,function(row) {
+        row[is.na(row)] <- -Inf
+        sort(row,index.return=TRUE,decreasing=TRUE)$ix
+      }
+    ))  
+    ,nrow=nrow(acf.pregnant$feats)
+    ,ncol=ncol(acf.pregnant$feats)
+  )
+  return(list(
+    smoothed.adjusted=smoothed.adjusted
+    ,acf.genres=acf.genres
+    ,acf.processed=acf.processed
+  ))
 }
-
-
 
 # Process database data, aggregating tweets in bin of bin size (seconds), smoothing down with bandwidth
 analyze <- function(bin.size,smoothing.bandwidth) {
@@ -96,7 +127,6 @@ analyze <- function(bin.size,smoothing.bandwidth) {
   dir.create(paste(dir.path,"/males/",sep=''))
   dir.create(paste(dir.path,"/females/",sep=''))
   dir.create(paste(dir.path,"/data/",sep=''))
-  #dir.create(paste(dir.path,"/final/",sep=''))
   # Save processed data
   save(
     analyzed.males
@@ -118,13 +148,12 @@ analyze <- function(bin.size,smoothing.bandwidth) {
     ,pregnantFemales=analyzed.females$summarized.pregnant
     ,pregnantAdjustedFemales=analyzed.females$summarized.pregnant.adjusted
   )
+  extracted.data <- extract.data(analyzed.males,analyzed.females)
+  save(extracted.data,file=paste(dir.path,"/data/",extracted.path,sep=''))
   print("Saved data")
   # Plot data
   all.plot(analyzed.males,paste(dir.path,"/males/",sep=''))
   print("Plotted male data")
   all.plot(analyzed.females,paste(dir.path,"/females/",sep=''))
   print("Plotted female data")
-  # Plot summary
-  #final.plot(analyzed.males,analyzed.females,paste(dir.path,"/final/",sep=''))
-  #print("Plotted final plots")
 }

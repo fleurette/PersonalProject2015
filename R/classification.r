@@ -186,6 +186,7 @@ em.calibrate <- function(num.dists) {
 
 em.execute <- function(train.data,num.folds=2,min.k=2,max.k=18,by.k=2) {
   num.obs <- length(train.data$class)
+  num.folds <- min(num.folds,num.obs)
   optimal.err.rate <- Inf
   optimal.k <- min.k
   fold.idx <- get.fold.idx(train.data,num.folds)
@@ -285,6 +286,7 @@ knn.calibrate <- function(k) {
 
 knn.execute <- function(train.data,num.folds=10,min.k=5,max.k=50,by.k=5) {
   num.obs <- length(train.data$class)
+  num.folds <- min(num.folds,num.obs)
   optimal.err.rate <- Inf
   optimal.k <- min.k
   fold.idx <- get.fold.idx(train.data,num.folds)
@@ -400,6 +402,7 @@ qda.classify <- function(train.data,test.data) {
 qda.execute <- function(train.data,num.folds=2) {
   num.obs <- length(train.data$class)
   # Get fold indices
+  num.folds <- min(num.folds,num.obs)
   fold.idx <- get.fold.idx(train.data,num.folds)
   # Compute error rate
   err.rate <- mean(sapply(
@@ -500,6 +503,7 @@ fda.classify <- function(train.data,test.data) {
 
 fda.execute <- function(train.data,num.folds=2) {
   num.obs <- length(train.data$class)
+  num.folds <- min(num.folds,num.obs)
   # Get fold indices
   fold.idx <- get.fold.idx(train.data,num.folds)
   # Compute error rate
@@ -714,6 +718,7 @@ adaboost.calibrate <- function(num.layers) {
 
 adaboost.execute <- function(train.data,num.folds=2,min.k=5,max.k=50,by.k=5) {
   num.obs <- length(train.data$class)
+  num.folds <- min(num.folds,num.obs)
   optimal.err.rate <- Inf
   optimal.k <- min.k
   fold.idx <- get.fold.idx(train.data,num.folds)
@@ -880,218 +885,4 @@ get.fold.data <- function(data,fold.idx) {
     train.data=train.data
     ,test.data=test.data
   ))
-}
-
-#################
-# Third project #
-#################
-
-analyze.data <- function(verbose=FALSE) {
-  # Load data and analyze it
-  data <- read.table("data14.dat")
-  
-  # Extract class information and feats
-  num.feats <- ncol(data)-1
-  feats <- data[,2:(num.feats+1)]
-  class <- data[,1]
-
-  if(verbose) {
-    # Number of data points
-    cat('Number of data points is:',nrow(feats),'\n')
-    # Information about class
-    print('Classes and number of elements of each class:')
-    print(table(data[,1]))
-    # Mean and variance for each class
-    print('Mean of feats class 1')
-    print(colMeans(feats[class==0,],na.rm=TRUE))
-    print('Mean of feats class 2')
-    print(colMeans(feats[class==1,],na.rm=TRUE))
-    print(sapply(feats[class==1,],mean,na.rm=TRUE))
-    print('Var of feats class 1')
-    print(sapply(feats[class==0,],var,na.rm=TRUE))
-    print('Var of feats class 2')
-    print(sapply(feats[class==1,],var,na.rm=TRUE))
-    # Plot densities for each feat
-    pdf('feats_densities.pdf')
-    for(feat.idx in 1:num.feats) {
-      data.class1 <- feats[,feat.idx][class==0]
-      data.class2 <- feats[,feat.idx][class==1]
-      plot(
-        density(data.class1,na.rm=TRUE)
-        ,lwd=2
-        ,main=paste('pdf of feat',feat.idx,'for class 1')
-        ,xlab=paste('range of feat',feat.idx)
-        ,ylab='probability'
-      )
-      plot(
-        density(data.class2,na.rm=TRUE)
-        ,lwd=2
-        ,main=paste('pdf of feat',feat.idx,'for class 2')
-        ,xlab=paste('range of feat',feat.idx)
-        ,ylab='probability'
-      )
-    }
-    dev.off()
-    print("Saved pdf in feats_densities.pdf")
-  }
-  
-  # Split data into a test and train set
-  test.idx <- sample.int(nrow(feats),size=100)
-  test.data <- list(
-    class=class[test.idx]
-    ,feats=as.matrix(feats[test.idx,])
-  )
-  train.data <- list(
-    class=class[-test.idx]
-    ,feats=as.matrix(feats[-test.idx,])
-  )
-
-  return(list(
-    test.data=data.clean.test(test.data)
-    ,train.data=data.clean.train(train.data)
-  ))
-}
-
-compare.classifiers <- function(train.data,test.data,num.folds=2) {
-  results <- list(
-    em.execute(train.data,num.folds)
-    ,fda.execute(train.data,num.folds)
-    ,qda.execute(train.data,num.folds)
-    ,adaboost.execute(train.data,num.folds)
-    ,knn.execute(train.data,num.folds)
-  )
-  # Extract results
-  err.rates <- sapply(results,'[[','err.rate')
-  two.closest <- results[sort.int(err.rates,index.return=TRUE)$ix[1:2]]
-  print(paste(
-    "The two most accurate classifiers are"
-    ,two.closest[[1]]$name
-    ,"with error rate"
-    ,two.closest[[1]]$err.rate
-    ,"and"
-    ,two.closest[[2]]$name
-    ,"with error rate"
-    ,two.closest[[2]]$err.rate
-  ))
-  # Test on actual test data 
-  first.classifier <- two.closest[[1]]$classifier(train.data,test.data)
-  second.classifier <- two.closest[[2]]$classifier(train.data,test.data)
-  print(paste(
-    "On actual test data set accuracies were"
-    ,first.classifier$err.rate
-    ,"for"
-    ,two.closest[[1]]$name
-    ,"and"
-    ,second.classifier$err.rate
-    ,"for"
-    ,two.closest[[2]]$name
-  ))
-  mc.nemar(first.classifier,second.classifier,test.data,1)
-}
-
-project <- function(num.folds=2) {
-  # Get data
-  data <- analyze.data(verbose=TRUE)
-  # Analyze it
-  compare.classifiers(data$train.data,data$test.data,num.folds)
-  # Do the mastery part of the project
-  mastery(data)
-}
-
-###################
-# Mastery project #
-###################
-
-mastery <- function(data,k.start=2,k.end=20,k.by=2) {
-  ks <- seq(from=k.start,to=k.end,by=k.by)
-  bagging.simple <- c()
-  bagging.decision <- c()
-  adaboost.simple <- c()
-  adaboost.decision <- c()
-  adaboost.all <- c()
-  for(k in ks) {
-    bagging.simple <- c(
-      bagging.simple
-      ,bagging.classify(data$train.data,data$test.data,k,simple.perceptron)$err.rate
-    )
-    print("Bagging simple")
-    bagging.decision <- c(
-      bagging.decision
-      ,bagging.classify(data$train.data,data$test.data,k,decision.stump)$err.rate
-    )
-    print("Bagging decision")
-    adaboost.simple <- c(
-      adaboost.simple
-      ,adaboost.classify(data$train.data,data$test.data,k,list(simple.perceptron))$err.rate
-    )
-    print("Adaboost simple")
-    adaboost.decision <- c(
-      adaboost.decision
-      ,adaboost.classify(data$train.data,data$test.data,k,list(decision.stump))$err.rate
-    )
-    print("Adaboost decision")
-    adaboost.all <- c(
-      adaboost.all
-      ,adaboost.classify(data$train.data,data$test.data,k)$err.rate
-    )
-    print("Adaboost double")
-    print(paste("Completed iteration for number of layers",k))
-  }
-  # Plot results
-  pdf("bagging_boosting.pdf")
-  all.err.rates <- c(bagging.simple,bagging.decision,adaboost.simple,adaboost.decision,adaboost.all)
-  ylim = c(0,1.7*max(all.err.rates))
-  plot(
-    ks
-    ,bagging.simple
-    ,ylim=ylim
-    ,col='red'
-    ,type='b'
-    ,ylab='Error rate'
-    ,xlab='Number of layers'
-    ,pch=1
-    ,lty=6
-    ,main="Accuracy for different bagging/boosting classifiers"
-  )
-  lines(
-    bagging.decision
-    ,x=ks
-    ,col='blue'
-    ,type='b'
-    ,pch=2
-    ,lty=2
-  )
-  lines(
-    adaboost.simple
-    ,x=ks
-    ,col='black'
-    ,type='b'
-    ,pch=3
-    ,lty=3
-  )
-  lines(
-    adaboost.decision
-    ,x=ks
-    ,col='green'
-    ,type='b'
-    ,pch=4
-    ,lty=4
-  )
-  lines(
-    adaboost.all
-    ,x=ks
-    ,col='pink'
-    ,type='b'
-    ,pch=5
-    ,lty=5
-  )
-  legend(
-    "topright"
-    ,c("Bagging simple perceptron","Bagging decision stump","Adaboost simple perceptron","Adaboost decision stump","Adaboost simple and decision stump")
-    ,lty=c(6,2,3,4,5)
-    ,lwd=c(1)
-    ,col=c("red","blue","black","green","pink")
-    ,inset=0.05
-  )
-  dev.off()
 }
