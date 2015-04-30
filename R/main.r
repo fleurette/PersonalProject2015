@@ -48,7 +48,18 @@ classify.test <- function(analyzed.males,analyzed.females) {
   num.females <- length(analyzed.females$test)+length(analyzed.females$pregnant)
   num.observations <- num.males+num.females
   num.features <- 5
-  data <- list(
+  # All smoothed
+  data.genres <- list(
+    class=c(rep(0,num.males),rep(1,num.females))
+    ,feats=rbind(
+      t(sapply(analyzed.males$test,'[[','tweet.count.smoothed.adjusted'))
+      ,t(sapply(analyzed.males$pregnant,'[[','tweet.count.smoothed.adjusted'))
+      ,t(sapply(analyzed.females$test,'[[','tweet.count.smoothed.adjusted'))
+      ,t(sapply(analyzed.females$pregnant,'[[','tweet.count.smoothed.adjusted'))
+    )
+  )
+  # All acf
+  data.acf <- list(
     class=c(rep(0,num.males),rep(1,num.females))
     ,feats=rbind(
       t(sapply(lapply(analyzed.males$test,'[[','acf'),'[[','acf'))
@@ -57,8 +68,18 @@ classify.test <- function(analyzed.males,analyzed.females) {
       ,t(sapply(lapply(analyzed.females$pregnant,'[[','acf'),'[[','acf'))
     )
   )
-
+  # Pregnant
+  data.pregnant <- list(
+    class=c(rep(0,length(analyzed.females$test)),rep(1,length(analyzed.females$pregnant)))
+    ,feats=rbind(
+      t(sapply(analyzed.females$test,'[[','tweet.count.smoothed.adjusted'))
+      ,t(sapply(analyzed.females$pregnant,'[[','tweet.count.smoothed.adjusted'))
+    )
+  )
+  # Acf smoothed versus 
 }
+
+
 
 # Process database data, aggregating tweets in bin of bin size (seconds), smoothing down with bandwidth
 analyze <- function(bin.size,smoothing.bandwidth) {
