@@ -96,7 +96,7 @@ analyze <- function(bin.size,smoothing.bandwidth) {
   dir.create(paste(dir.path,"/males/",sep=''))
   dir.create(paste(dir.path,"/females/",sep=''))
   dir.create(paste(dir.path,"/data/",sep=''))
-  dir.create(paste(dir.path,"/final/",sep=''))
+  #dir.create(paste(dir.path,"/final/",sep=''))
   # Save processed data
   save(
     analyzed.males
@@ -104,8 +104,8 @@ analyze <- function(bin.size,smoothing.bandwidth) {
     ,file=paste(dir.path,"/data/",r.path,sep='')
   )
   writeMat(
-    paste(dir.path,"/data/",matlab.path,sep='')
     # Males test
+    paste(dir.path,"/data/",matlab.path,sep='')
     ,testMales=analyzed.males$summarized.test
     ,testAdjustedMales=analyzed.males$summarized.test.adjusted
     # Males pregnant
@@ -117,7 +117,6 @@ analyze <- function(bin.size,smoothing.bandwidth) {
     # Females pregnant
     ,pregnantFemales=analyzed.females$summarized.pregnant
     ,pregnantAdjustedFemales=analyzed.females$summarized.pregnant.adjusted
-    ,path=path
   )
   print("Saved data")
   # Plot data
@@ -126,6 +125,6 @@ analyze <- function(bin.size,smoothing.bandwidth) {
   all.plot(analyzed.females,paste(dir.path,"/females/",sep=''))
   print("Plotted female data")
   # Plot summary
-  final.plot(analyzed.males,analyzed.females,paste(dir.path,"/final/",sep=''))
-  print("Plotted final plots")
+  #final.plot(analyzed.males,analyzed.females,paste(dir.path,"/final/",sep=''))
+  #print("Plotted final plots")
 }

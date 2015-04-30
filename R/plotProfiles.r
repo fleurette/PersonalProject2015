@@ -117,6 +117,10 @@ summary.plot <- function(summary,type) {
     ,ylab="Probability of tweet"
     ,type='l'
   )
+  abline(
+    v=c(summary$start.dob,summary$end.dob)
+    ,col="blue"
+  )
   title(main=paste("Mean of tweet time distribution for ",type,"profiles"))
   # Plot variance
   plot(
@@ -125,6 +129,10 @@ summary.plot <- function(summary,type) {
     ,xlab="Time in days"
     ,ylab="Probability of tweet"
     ,type='l'
+  )
+  abline(
+    v=c(summary$start.dob,summary$end.dob)
+    ,col="blue"
   )
   title(main=paste("Var of tweet time distribution for ",type,"profiles"))
   # Mean vs Sd

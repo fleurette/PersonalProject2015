@@ -8,13 +8,17 @@ analyze.profiles <- function(data,bin.size,smoothing.bandwidth) {
   num.bins <- ceiling((pregnancy.length+2*one.month)/bin.size)
   num.bins.day <- one.day/bin.size
   taxis <- seq(from=(-pregnancy.length-one.month)/one.day,to=one.month/one.day,length=num.bins)
+  start.dob <- taxis[which.min(abs(taxis+279))]
+  end.dob <- taxis[which.min(abs(taxis))]
   # Analyze profiles
   analyzed.profiles <- (lapply(
     data
     ,analyze.profile
-    ,taxis
     ,bin.size
     ,smoothing.bandwidth
+    ,taxis
+    ,start.dob
+    ,end.dob
   ))
   # Extract test, pregnant profiles
   test.indices <- sapply(analyzed.profiles,'[[','test')
@@ -26,24 +30,32 @@ analyze.profiles <- function(data,bin.size,smoothing.bandwidth) {
     ,summarized.test=summarize.profiles(
       sapply(test,'[[','tweet.count.smoothed')
       ,taxis
+      ,start.dob
+      ,end.dob
     )
     ,summarized.test.adjusted=summarize.profiles(
       sapply(test,'[[','tweet.count.smoothed.adjusted')
       ,taxis
+      ,start.dob
+      ,end.dob
     )
     ,pregnant=pregnant
     ,summarized.pregnant=summarize.profiles(
       sapply(pregnant,'[[','tweet.count.smoothed')
       ,taxis
+      ,start.dob
+      ,end.dob
     )
     ,summarized.pregnant.adjusted=summarize.profiles(
       sapply(pregnant,'[[','tweet.count.smoothed.adjusted')
       ,taxis
+      ,start.dob
+      ,end.dob
     )
   ))
 }
 
-summarize.profiles <- function(profiles,taxis) {
+summarize.profiles <- function(profiles,taxis,start.dob,end.dob) {
   # Compute mean, sd, variance
   profiles.mean <- apply(profiles,1,mean,na.rm=TRUE)
   profiles.var <- apply(profiles,1,var,na.rm=TRUE)
@@ -60,11 +72,13 @@ summarize.profiles <- function(profiles,taxis) {
     ,taxis=taxis
     ,pcount=ncol(profiles)
     ,count=count
+    ,start.dob=start.dob
+    ,end.dob=end.dob
   ))
 }
 
 # Mark test profiles, compute histogram and smoothed curves
-analyze.profile <- function(profile,taxis,bin.size,smoothing.bandwidth) {
+analyze.profile <- function(profile,bin.size,smoothing.bandwidth,taxis,start.dob,end.dob) {
   # For test profiles, assume dob is one month before oldest tweet, set new test field
   if(is.na(profile$dob)) {
     profile$dob <- profile$tweet.times[1]-one.month
@@ -81,8 +95,8 @@ analyze.profile <- function(profile,taxis,bin.size,smoothing.bandwidth) {
   profile$tweet.times.indices <- ceiling((profile$selected.tweet.times-profile$start.date)/bin.size)
   # Add taxis
   profile$taxis <- taxis
-  profile$start.dob <- profile$taxis[which.min(abs(profile$taxis+279))]
-  profile$end.dob <- profile$taxis[which.min(abs(profile$taxis))]
+  profile$start.dob <- start.dob
+  profile$end.dob <- end.dob
   # Build histogram
   profile$tweet.count <- rep(0,length(taxis))
   for(tweet.index in profile$tweet.times.indices) {
@@ -118,7 +132,7 @@ analyze.profile <- function(profile,taxis,bin.size,smoothing.bandwidth) {
   }
   # Compute adjusted tweet count smoothed curve, normalize it
   zero.indices <- profile$tweet.count.smoothed==0
-  normalizer.coefficient <- (length(zero.indices)-sum(as.numeric(zero.indices)))/length(zero.indices)
+  normalizer.coefficient <- (length(profile$tweet.count.smoothed)-sum(as.numeric(zero.indices)))/length(profile$tweet.count.smoothed)
   profile$tweet.count.smoothed.adjusted <- profile$tweet.count.smoothed*normalizer.coefficient
   profile$tweet.count.smoothed.adjusted[zero.indices] <- NA
   # Add acf information
@@ -126,7 +140,6 @@ analyze.profile <- function(profile,taxis,bin.size,smoothing.bandwidth) {
     profile$tweet.count.smoothed.adjusted
     ,plot=FALSE
     ,na.action=na.pass
-    #,max.lag=length(which(taxis>0))
     ,lag.max=60
   )
 
