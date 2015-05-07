@@ -20,6 +20,7 @@ analyze.profiles <- function(data,bin.size,smoothing.bandwidth) {
     ,start.dob
     ,end.dob
   ))
+  analyzed.profiles <- Filter(function(x) !is.null(x),analyzed.profiles)
   # Extract test, pregnant profiles
   test.indices <- sapply(analyzed.profiles,'[[','test')
   test <- analyzed.profiles[test.indices]
@@ -90,6 +91,9 @@ analyze.profile <- function(profile,bin.size,smoothing.bandwidth,taxis,start.dob
   profile$start.date <- profile$dob - pregnancy.length - one.month
   profile$end.date <- profile$dob + one.month
   indices <- (profile$tweet.times<=profile$end.date) & (profile$tweet.times>=profile$start.date)
+  if(!any(indices)) {
+    return(NULL)
+  }
   # Compute indices of relevant tweets
   profile$selected.tweet.times <- profile$tweet.times[indices]
   profile$tweet.times.indices <- ceiling((profile$selected.tweet.times-profile$start.date)/bin.size)

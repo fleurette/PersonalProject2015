@@ -109,6 +109,7 @@ extract.data <- function(analyzed.males,analyzed.females) {
     smoothed.adjusted=smoothed.adjusted
     ,acf.genres=acf.genres
     ,acf.processed=acf.processed
+    ,acf.pregnant=acf.pregnant
   ))
 }
 
