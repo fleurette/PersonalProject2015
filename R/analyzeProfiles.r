@@ -144,8 +144,12 @@ analyze.profile <- function(profile,bin.size,smoothing.bandwidth,taxis,start.dob
     profile$tweet.count.smoothed.adjusted
     ,plot=FALSE
     ,na.action=na.pass
-    ,lag.max=60
+    ,lag.max=2*round(sum(as.numeric(profile$taxis>0)))
   )
+  # Extract acf indices
+  temp <- profile$acf$acf
+  temp[is.na(temp)] <- -Inf
+  profile$acf.indices <- sort(temp,index.return=TRUE,decreasing=TRUE)$ix
 
   return(profile)
 }

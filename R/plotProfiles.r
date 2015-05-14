@@ -145,25 +145,51 @@ summary.plot <- function(summary,type) {
   )
 }
 
-final.plot <- function(analyzed.males,analyzed.females,path) {
-  # Save data to matlab
-  writeMat(
-    "data.mat"
-    # Males test
-    ,testMales=analyzed.males$summarized.test
-    ,testAdjustedMales=analyzed.males$summarized.test.adjusted
-    # Males pregnant
-    ,pregnantMales=analyzed.males$summarized.pregnant
-    ,pregnantAdjustedMales=analyzed.males$summarized.pregnant.adjusted
-    # Females test
-    ,testFemales=analyzed.females$summarized.test
-    ,testAdjustedFemales=analyzed.females$summarized.test.adjusted
-    # Females pregnant
-    ,pregnantFemales=analyzed.females$summarized.pregnant
-    ,pregnantAdjustedFemales=analyzed.females$summarized.pregnant.adjusted
-    ,path=path
-  )
+final.plot <- function(analyzed.males,analyzed.females,matlab.path,save.path) {
   # Start matlab
-  # Delete data file
-  unlink("data.mat")
+  cmd <- paste(
+    "./callMatlab.sh "
+    ,paste("'../R/",matlab.path,"' ",sep='')
+    ,paste("'../R/",save.path,"' ",sep='')
+  )
+  system(cmd)
+}
+
+classification.plot <- function(classifications,save.path) {
+  pdf(paste(save.path,"classification_outcomes.pdf",sep=""))
+  lapply(
+    classifications
+    ,function(classification) {
+      plot(
+        type="l"
+        ,col="red"
+        ,x=classification$knn.euclidean$ks
+        ,y=classification$knn.euclidean$accuracies
+        ,ylim=c(0,1)
+        ,xlab="Number of Neighbors"
+        ,ylab="Accuracy"
+        ,main=paste(
+          "Accuracy with k neighbors when classifying between"
+          ,classification$class1
+          ,"and\n"
+          ,classification$class2
+          ,"using"
+          ,classification$type
+          ,sep=" "
+        )
+        ,cex.main=0.9
+      )
+      abline(h=classification$qda,col="black")
+      legend(
+        "bottomleft"
+        ,c("knn","qda")
+        ,lty=c(1,1)
+        ,lwd=c(1,1)
+        ,col=c("red","black")
+        ,inset=0.05
+      )
+      return(classification)
+    }
+  )
+  dev.off()
 }

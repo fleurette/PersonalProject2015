@@ -39,3 +39,10 @@ Compute same graphs for normal data
 Implement the graphs Aldo wanted
 Take a look at periodicity test
 Look at signal autocorrelation with acf do determine period for females :)
+
+# Todo
+Generate the Matlab plots 
+Generate classification accuracy plots
+Generate plots for the data I am using to classify
+
+Lines:858 114 70 48 14 31 
