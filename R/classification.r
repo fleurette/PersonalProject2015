@@ -1,5 +1,7 @@
 library(class)
+library(e1071)
 source('qda.r')
+
 
 # Perform all analysis 
 classify.data <- function(analyzed.males,analyzed.females) {
@@ -8,6 +10,7 @@ classify.data <- function(analyzed.males,analyzed.females) {
     ,function(profile) {
       profile$knn.euclidean <- knn.euclidean(profile)
       profile$qda <- qda.execute(profile)
+      profile$svm <- 1-svm(profile$feats,profile$class,cross=40)$tot.MSE
       # Clean up profile
       profile$class <- NULL
       profile$feats <- NULL
@@ -31,6 +34,8 @@ extract.data <- function(analyzed.males,analyzed.females) {
     ,t(sapply(analyzed.females$pregnant,'[[','tweet.count.smoothed.adjusted'))
   ),center=FALSE)
   tweet.counts[is.na(tweet.counts)] <- 0
+  tweet.counts <- scale(tweet.counts)
+
   acf.values <- rbind(
     t(sapply(lapply(analyzed.males$test,'[[','acf'),'[[','acf'))
     ,t(sapply(lapply(analyzed.males$pregnant,'[[','acf'),'[[','acf'))
@@ -38,17 +43,22 @@ extract.data <- function(analyzed.males,analyzed.females) {
     ,t(sapply(lapply(analyzed.females$pregnant,'[[','acf'),'[[','acf'))
   )
   acf.values[is.na(acf.values)] <- 0
+  acf.values <- scale(acf.values)
+
   acf.values.pregnant <- rbind(
     t(sapply(lapply(analyzed.females$test,'[[','acf'),'[[','acf'))
     ,t(sapply(lapply(analyzed.females$pregnant,'[[','acf'),'[[','acf'))
   )
   acf.values.pregnant[is.na(acf.values.pregnant)] <- 0
+  acf.values.pregnant <- scale(acf.values.pregnant)
+
   acf.indices <- scale(rbind(
     t(sapply(analyzed.males$test,'[[','acf.indices'))
     ,t(sapply(analyzed.males$pregnant,'[[','acf.indices'))
     ,t(sapply(analyzed.females$test,'[[','acf.indices'))
     ,t(sapply(analyzed.females$pregnant,'[[','acf.indices'))
   ),center=FALSE)
+
   acf.indices.pregnant <- scale(rbind(
     t(sapply(analyzed.females$test,'[[','acf.indices'))
     ,t(sapply(analyzed.females$pregnant,'[[','acf.indices'))

@@ -180,12 +180,13 @@ classification.plot <- function(classifications,save.path) {
         ,cex.main=0.9
       )
       abline(h=classification$qda,col="black")
+      abline(h=classification$svm,col="green")
       legend(
         "bottomleft"
-        ,c("knn","qda")
-        ,lty=c(1,1)
-        ,lwd=c(1,1)
-        ,col=c("red","black")
+        ,c("knn","qda","svm")
+        ,lty=c(1,1,1)
+        ,lwd=c(1,1,1)
+        ,col=c("red","black","green")
         ,inset=0.05
       )
       return(classification)

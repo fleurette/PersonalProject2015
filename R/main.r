@@ -41,7 +41,6 @@ import <- function() {
 reset <- function() {
   unlink(figures.path,recursive=TRUE)
   unlink(raw.path)
-  unlink(matlab.path)
   dir.create(figures.path)
 }
 
@@ -69,8 +68,8 @@ analyze <- function(bin.size,smoothing.bandwidth) {
     ,file=paste(dir.path,"/data/",r.path,sep='')
   )
   writeMat(
+    paste(dir.path,"/data/",matlab.path,sep='')
     # Males test
-    matlab.path
     ,testMales=analyzed.males$summarized.test
     ,testAdjustedMales=analyzed.males$summarized.test.adjusted
     # Males pregnant
@@ -101,4 +100,6 @@ analyze <- function(bin.size,smoothing.bandwidth) {
     classifications
     ,paste(dir.path,"/classify/",sep='')
   )
+  # Return analyzed profiles
+  return(list(analyzed.males,analyzed.females))
 }
