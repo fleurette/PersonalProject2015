@@ -4,152 +4,103 @@ one.month <- 29.6*24*3600
 one.day <- 24*3600
 
 analyze.profiles <- function(data,bin.size,smoothing.bandwidth) {
-  # Compute x taxis
-  num.bins <- ceiling((pregnancy.length+2*one.month)/bin.size)
-  num.bins.day <- one.day/bin.size
-  taxis <- seq(from=(-pregnancy.length-one.month)/one.day,to=one.month/one.day,length=num.bins)
-  start.dob <- taxis[which.min(abs(taxis+279))]
-  end.dob <- taxis[which.min(abs(taxis))]
-  # Analyze profiles
-  analyzed.profiles <- (lapply(
+  result <- list()
+  # Set a boolean to indicate whether or not the profile is a test profile or a pregnant profile
+  result$all <- lapply(
     data
-    ,analyze.profile
-    ,bin.size
-    ,smoothing.bandwidth
-    ,taxis
-    ,start.dob
-    ,end.dob
-  ))
-  analyzed.profiles <- Filter(function(x) !is.null(x),analyzed.profiles)
-  # Extract test, pregnant profiles
-  test.indices <- sapply(analyzed.profiles,'[[','test')
-  test <- analyzed.profiles[test.indices]
-  pregnant <- analyzed.profiles[!test.indices]
+    ,function(profile) {
+      if(is.na(profile$dob)) {
+        profile$dob <- profile$tweet.times[1]
+        profile$test <- TRUE
+      } else {
+        profile$test <- FALSE
+      }
+      return(profile)
+    }
+  )
+  # Compute num bins and time axis
+  num.bins <- ceiling(pregnancy.length/bin.size)
+  result$taxis <- seq(from=-pregnancy.length/one.day,to=0,length=num.bins)
+  # Analyze profiles with different start and end dates
+  result$all <- lapply(
+    result$all
+    ,function(profile) {
+      profile$analysis <- list(
+        during=analyze.profile(profile$tweet.times,bin.size,smoothing.bandwidth,profile$dob-pregnancy.length,profile$dob,num.bins)
+        ,before=analyze.profile(profile$tweet.times,bin.size,smoothing.bandwidth,profile$dob-2*pregnancy.length,profile$dob-pregnancy.length,num.bins)
+      )
+      return(profile)
+    }
+  )
+  # Extract test and pregnant profiles
+  result$test <- Filter(function(x) x$test,result$all)
+  result$pregnant <- Filter(function(x) !x$test,result$all)
+  # Compute summary of data
+  result$summary <- list(
+    test=summarize.profiles(result$test)
+    ,pregnant=summarize.profiles(result$pregnant)
+    ,all=summarize.profiles(result$all)
+  )
   # Summarize all
+  return(result)
+}
+
+summarize.profiles <- function(profiles) {
+  # Compute mean, sd, variance, and sde for tweet times and acf values
+  summarize <- function(data) {
+    return(lapply(list(
+        list(data=t(sapply(data,'[[','pdf')),type="pdf")
+        ,list(data=t(sapply(data,'[[','acf')),type="acf")
+      )
+      ,function(observations) {
+        observation.count <- colSums(apply(observations$data,2,function(observation) (!is.na(observation))))
+        return(list(
+          mean=colMeans(observations$data,na.rm=TRUE)
+          ,sde=sqrt(diag(var(observations$data,na.rm=TRUE))/sqrt(observation.count))
+          ,type=observations$type
+          ,count=observation.count
+        ))
+      }
+    ))
+  }
+  # Extract analysis for pregnancy period and before pregnancy period
+  profiles.analysis <- lapply(profiles,'[[','analysis')
   return(list(
-    test=test
-    ,summarized.test=summarize.profiles(
-      sapply(test,'[[','tweet.count.smoothed')
-      ,taxis
-      ,start.dob
-      ,end.dob
-    )
-    ,summarized.test.adjusted=summarize.profiles(
-      sapply(test,'[[','tweet.count.smoothed.adjusted')
-      ,taxis
-      ,start.dob
-      ,end.dob
-    )
-    ,pregnant=pregnant
-    ,summarized.pregnant=summarize.profiles(
-      sapply(pregnant,'[[','tweet.count.smoothed')
-      ,taxis
-      ,start.dob
-      ,end.dob
-    )
-    ,summarized.pregnant.adjusted=summarize.profiles(
-      sapply(pregnant,'[[','tweet.count.smoothed.adjusted')
-      ,taxis
-      ,start.dob
-      ,end.dob
-    )
+    before=summarize(Filter(function(x) length(x),lapply(profiles.analysis,'[[','before')))
+    ,during=summarize(Filter(function(x) length(x),lapply(profiles.analysis,'[[','during')))
   ))
 }
 
-summarize.profiles <- function(profiles,taxis,start.dob,end.dob) {
-  # Compute mean, sd, variance
-  profiles.mean <- apply(profiles,1,mean,na.rm=TRUE)
-  profiles.var <- apply(profiles,1,var,na.rm=TRUE)
-  profiles.sd <- sqrt(profiles.var)
-  count <- colSums(rbind(apply(
-    profiles
-    ,1
-    ,function(profile) as.numeric(!is.na(profile))
-  )))
-  return(list(
-    mean=profiles.mean
-    ,var=profiles.var
-    ,sd=profiles.sd
-    ,taxis=taxis
-    ,pcount=ncol(profiles)
-    ,count=count
-    ,start.dob=start.dob
-    ,end.dob=end.dob
-  ))
-}
-
-# Mark test profiles, compute histogram and smoothed curves
-analyze.profile <- function(profile,bin.size,smoothing.bandwidth,taxis,start.dob,end.dob) {
-  # For test profiles, assume dob is one month before oldest tweet, set new test field
-  if(is.na(profile$dob)) {
-    profile$dob <- profile$tweet.times[1]-one.month
-    profile$test <- TRUE
-  } else {
-    profile$test <- FALSE
+analyze.profile <- function(tweet.times,bin.size,smoothing.bandwidth,start.date,end.date,num.bins) {
+  result <- list()
+  # Compute indices of relevant tweet for selected bin.size
+  relevant.tweet.times <- tweet.times[(tweet.times<=end.date) & (tweet.times>=start.date)]
+  tweet.indices <- ceiling((relevant.tweet.times-start.date)/bin.size)
+  # If there are no relevant tweets return NULL
+  if(length(tweet.indices)==0) return(logical(0))
+  # Build tweet histogram
+  result$histogram <- rep(0,num.bins)
+  for(tweet.index in tweet.indices) {
+    result$histogram[tweet.index] <- result$histogram[tweet.index]+1
   }
-  # Compute start and end dates
-  profile$start.date <- profile$dob - pregnancy.length - one.month
-  profile$end.date <- profile$dob + one.month
-  indices <- (profile$tweet.times<=profile$end.date) & (profile$tweet.times>=profile$start.date)
-  if(!any(indices)) {
-    return(NULL)
-  }
-  # Compute indices of relevant tweets
-  profile$selected.tweet.times <- profile$tweet.times[indices]
-  profile$tweet.times.indices <- ceiling((profile$selected.tweet.times-profile$start.date)/bin.size)
-  # Add taxis
-  profile$taxis <- taxis
-  profile$start.dob <- start.dob
-  profile$end.dob <- end.dob
-  # Build histogram
-  profile$tweet.count <- rep(0,length(taxis))
-  for(tweet.index in profile$tweet.times.indices) {
-    profile$tweet.count[tweet.index] <- profile$tweet.count[tweet.index]+1
-  }
-  # Compute tweet count smoothed curve and normalize it
-  tweet.count.smoothed <- ksmooth(
-    profile$taxis
-    ,profile$tweet.count
+  # Build tweet pdf, normalize it and assign NA to zero values to account for missing information
+  result$pdf <- ksmooth(
+    1:num.bins
+    ,result$histogram
     ,"normal"
     ,bandwidth=smoothing.bandwidth
   )[[2]]
-  # If some values are NA warn user about it and restore histogram instead
-  while(any(is.nan(tweet.count.smoothed))) {
-    smoothing.bandwidth <- smoothing.bandwidth + 0.1
-    print(paste(
-      "Smoothing coefficient too low, smoothing with higher smoothing bandwidth"
-      ,smoothing.bandwidth
-    ))
-    tweet.count.smoothed <- ksmooth(
-      profile$taxis
-      ,profile$tweet.count
-      ,"normal"
-      ,bandwidth=smoothing.bandwidth
-    )[[2]]
-  }
-  # Normalize smoothing count
-  normalizer <- sum(tweet.count.smoothed)*bin.size
-  if(normalizer>0) {
-    profile$tweet.count.smoothed <- tweet.count.smoothed/normalizer
-  } else {
-    profile$tweet.count.smoothed <- tweet.count.smoothed
-  }
-  # Compute adjusted tweet count smoothed curve, normalize it
-  zero.indices <- profile$tweet.count.smoothed==0
-  normalizer.coefficient <- (length(profile$tweet.count.smoothed)-sum(as.numeric(zero.indices)))/length(profile$tweet.count.smoothed)
-  profile$tweet.count.smoothed.adjusted <- profile$tweet.count.smoothed*normalizer.coefficient
-  profile$tweet.count.smoothed.adjusted[zero.indices] <- NA
-  # Add acf information
-  profile$acf <- acf(
-    profile$tweet.count.smoothed.adjusted
+  zero.indices <- result$pdf==0
+  result$pdf <- result$pdf*(num.bins-sum(zero.indices))/(sum(result$pdf)*num.bins^2)
+  result$pdf[zero.indices] <- NA
+  # Extract acf information
+  result$acf <- as.numeric(acf(
+    result$pdf
     ,plot=FALSE
     ,na.action=na.pass
-    ,lag.max=2*round(sum(as.numeric(profile$taxis>0)))
-  )
-  # Extract acf indices
-  temp <- profile$acf$acf
-  temp[is.na(temp)] <- -Inf
-  profile$acf.indices <- sort(temp,index.return=TRUE,decreasing=TRUE)$ix
+    ,lag.max=one.month*2/bin.size
+  )$acf)
+  result$acf.indices <- sort(result$acf,index.return=TRUE,decreasing=TRUE)$ix
 
-  return(profile)
+  return(result)
 }

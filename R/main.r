@@ -45,7 +45,7 @@ reset <- function() {
 }
 
 # Process database data, aggregating tweets in bin of bin size (seconds), smoothing down with bandwidth
-analyze <- function(bin.size,smoothing.bandwidth) {
+analyze <- function(bin.size,smoothing.bandwidth,matlab.backup=FALSE) {
   import()
   load(raw.path)
   # Process data
@@ -67,22 +67,16 @@ analyze <- function(bin.size,smoothing.bandwidth) {
     ,analyzed.females
     ,file=paste(dir.path,"/data/",r.path,sep='')
   )
-  writeMat(
-    paste(dir.path,"/data/",matlab.path,sep='')
-    # Males test
-    ,testMales=analyzed.males$summarized.test
-    ,testAdjustedMales=analyzed.males$summarized.test.adjusted
-    # Males pregnant
-    ,pregnantMales=analyzed.males$summarized.pregnant
-    ,pregnantAdjustedMales=analyzed.males$summarized.pregnant.adjusted
-    # Females test
-    ,testFemales=analyzed.females$summarized.test
-    ,testAdjustedFemales=analyzed.females$summarized.test.adjusted
-    # Females pregnant
-    ,pregnantFemales=analyzed.females$summarized.pregnant
-    ,pregnantAdjustedFemales=analyzed.females$summarized.pregnant.adjusted
-  )
   print("Saved data")
+  if(matlab.backup) {
+    writeMat(
+      paste(dir.path,"/data/",matlab.path,sep='')
+      # Males test
+      ,males=analyzed.males
+      ,females=analyzed.females
+    )
+    print("Saved data to Matlab binary")
+  }
   # Plot data
   all.plot(analyzed.males,paste(dir.path,"/males/",sep=''))
   print("Plotted male data")
