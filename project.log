@@ -46,3 +46,20 @@ Generate classification accuracy plots
 Generate plots for the data I am using to classify
 
 Lines:858 114 70 48 14 31 
+
+# Classifiers with absolutely everything :)
+# Modify classification module
+#Three classes
+#Split in normal data and extended data
+#Account for null values
+Throw an error in qda when there are no samples from the third class
+Investiage:
+Erreur dans profile$qda <- qda.execute(problem) :
+  objet de type 'closure' non indiçable
+
+Meeting June First, 1530
+#Use completely clean data for classification
+Compare acf values for profiles at intervals of 9 months
+Plot SDE of ACF values properly
+Plot some interesting information about classifier accuracies instead of this rubbish nonsense
+Plot the chance line too!

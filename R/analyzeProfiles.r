@@ -25,10 +25,13 @@ analyze.profiles <- function(data,bin.size,smoothing.bandwidth) {
   result$all <- lapply(
     result$all
     ,function(profile) {
+      during <- analyze.profile(profile$tweet.times,bin.size,smoothing.bandwidth,profile$dob-pregnancy.length,profile$dob,num.bins)
+      before <- analyze.profile(profile$tweet.times,bin.size,smoothing.bandwidth,profile$dob-2*pregnancy.length,profile$dob-pregnancy.length,num.bins)
       profile$analysis <- list(
-        during=analyze.profile(profile$tweet.times,bin.size,smoothing.bandwidth,profile$dob-pregnancy.length,profile$dob,num.bins)
-        ,before=analyze.profile(profile$tweet.times,bin.size,smoothing.bandwidth,profile$dob-2*pregnancy.length,profile$dob-pregnancy.length,num.bins)
+        during=during
+        ,before=before
       )
+      profile$classify <- during
       return(profile)
     }
   )
@@ -100,7 +103,9 @@ analyze.profile <- function(tweet.times,bin.size,smoothing.bandwidth,start.date,
     ,na.action=na.pass
     ,lag.max=one.month*2/bin.size
   )$acf)
+  # Extract acf indices, complete with zero values to get the same number of values as in the original acf curve
   result$acf.indices <- sort(result$acf,index.return=TRUE,decreasing=TRUE)$ix
+  result$acf.indices <- c(result$acf.indices,rep(0,length(result$acf)-length(result$acf.indices)))
 
   return(result)
 }

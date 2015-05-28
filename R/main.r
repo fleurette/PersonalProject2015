@@ -77,7 +77,9 @@ analyze <- function(bin.size,smoothing.bandwidth,matlab.backup=FALSE) {
     )
     print("Saved data to Matlab binary")
   }
-  # Plot data
+  # Classify data
+  classifications <- classify.data(analyzed.males,analyzed.females)
+  # Plot result of classification and summary of analysis
   all.plot(analyzed.males,paste(dir.path,"/males/",sep=''))
   print("Plotted male data")
   all.plot(analyzed.females,paste(dir.path,"/females/",sep=''))
@@ -89,11 +91,14 @@ analyze <- function(bin.size,smoothing.bandwidth,matlab.backup=FALSE) {
     ,paste(dir.path,"/final/",sep='')
   )
   # Classify data
-  classifications <- classify.data(analyzed.males,analyzed.females)
   classification.plot(
     classifications
     ,paste(dir.path,"/classify/",sep='')
   )
   # Return analyzed profiles
-  return(list(analyzed.males,analyzed.females))
+  return(list(
+    analyzed.males=analyzed.males
+    ,analyzed.females=analyzed.females
+    ,classifications=classifications
+  ))
 }

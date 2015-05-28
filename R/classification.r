@@ -3,109 +3,92 @@ library(e1071)
 source('qda.r')
 
 
-# Perform all analysis 
+# Classify data using a number of different classifiers on the during pregnancy features
 classify.data <- function(analyzed.males,analyzed.females) {
   return(lapply(
     extract.problems(analyzed.males,analyzed.females)
-    ,function(profile) {
-      profile$knn.euclidean <- knn.euclidean(profile)
-      profile$qda <- qda.execute(profile)
-      profile$svm <- 1-svm(profile$feats,profile$class,cross=40)$tot.MSE
-      # Clean up profile
-      profile$class <- NULL
-      profile$feats <- NULL
-      return(profile)
+    ,function(problem) {
+      problem$knn.euclidean <- knn.euclidean(problem)
+      qda.accuracies <- qda.execute(problem)
+      problem$qda <- qda.accuracies
+      problem$svm <- svm.custom(problem)
+      return(problem)
     }
   ))
 }
 
 extract.problems <- function(analyzed.males,analyzed.females) {
+  # Prepare all different feature matrices
+  test.males <- Filter(function(x) length(x),lapply(analyzed.males$test,'[[','classify'))
+  test.females <- Filter(function(x) length(x),lapply(analyzed.females$test,'[[','classify'))
+  pregnant.males <- Filter(function(x) length(x),lapply(analyzed.males$pregnant,'[[','classify'))
+  pregnant.females <- Filter(function(x) length(x),lapply(analyzed.females$pregnant,'[[','classify'))
+
   # Extract data information
-  num.test.males <- length(analyzed.males$test)
-  num.pregnant.males <- length(analyzed.males$pregnant)
+  num.test.males <- length(test.males)
+  num.pregnant.males <- length(pregnant.males)
   num.males <- num.test.males+num.pregnant.males
 
-  num.test.females <- length(analyzed.females$test)
-  num.pregnant.females <- length(analyzed.females$pregnant)
+  num.test.females <- length(test.females)
+  num.pregnant.females <- length(pregnant.females)
   num.females <- num.test.females+num.pregnant.females
 
   num.observations <- num.males+num.females
 
-  # Prepare all different feature matrices
-  feature.matrices <- list()
+  extract.observations <- function(feature.name) {
+    observations <- rbind(
+      t(sapply(test.males,'[[',feature.name))
+      ,t(sapply(pregnant.males,'[[',feature.name))
+      ,t(sapply(test.females,'[[',feature.name))
+      ,t(sapply(pregnant.females,'[[',feature.name))
+    )
+    observations[is.na(observations)] <- 0
+    return(observations)
+  }
 
-  tweet.counts <- rbind(
-    t(sapply(analyzed.males$test,'[[','tweet.count.smoothed.adjusted'))
-    ,t(sapply(analyzed.males$pregnant,'[[','tweet.count.smoothed.adjusted'))
-    ,t(sapply(analyzed.females$test,'[[','tweet.count.smoothed.adjusted'))
-    ,t(sapply(analyzed.females$pregnant,'[[','tweet.count.smoothed.adjusted'))
-  )
-  tweet.counts[is.na(tweet.counts)] <- 0
-  tweet.counts <- scale(tweet.counts)
-  feature.matrices[[length(feature.matrices)+1]] <- list(
-    data=tweet.counts
-    ,type="tweet counts"
-  )
+  pdfs <- extract.observations("pdf")
+  acfs <- extract.observations("acf")
+  acf.indices <- extract.observations("acf.indices")
+  all.features <- cbind(pdfs,acfs,acf.indices)
 
-  acf.values <- rbind(
-    t(sapply(lapply(analyzed.males$test,'[[','acf'),'[[','acf'))
-    ,t(sapply(lapply(analyzed.males$pregnant,'[[','acf'),'[[','acf'))
-    ,t(sapply(lapply(analyzed.females$test,'[[','acf'),'[[','acf'))
-    ,t(sapply(lapply(analyzed.females$pregnant,'[[','acf'),'[[','acf'))
-  )
-  acf.values[is.na(acf.values)] <- 0
-  acf.values <- scale(acf.values)
-  feature.matrices[[length(feature.matrices)+1]] <- list(
-    data=acf.values
-    ,type="acf values"
-  )
-
-  acf.indices <- scale(rbind(
-    t(sapply(analyzed.males$test,'[[','acf.indices'))
-    ,t(sapply(analyzed.males$pregnant,'[[','acf.indices'))
-    ,t(sapply(analyzed.females$test,'[[','acf.indices'))
-    ,t(sapply(analyzed.females$pregnant,'[[','acf.indices'))
-  ),center=FALSE)
-  feature.matrices[[length(feature.matrices)+1]] <- list(
-    data=acf.indices
-    ,type="acf indices"
-  )
-
-  feature.matrices[[length(feature.matrices)+1]] <- list(
-    data=cbind(acf.indices,acf.values,tweet.counts)
-    ,type="all features"
+  feature.matrices <- list(
+    list(feats=pdfs,type="pdf")
+    ,list(feats=acfs,type="acf")
+    ,list(feats=acf.indices,type="acf indices")
+    ,list(feats=all.features,type="all features")
   )
 
   # Prepare all different classification problems
-  classification.problems <- list()
-
-  classification.problems[[length(classification.problems)+1]] <- list(
-    class1="males"
-    ,class2="females"
-    ,class=c(rep(0,num.males),rep(1,num.females))
-    ,range=1:num.observations
-  )
-
-  classification.problems[[length(classification.problems)+1]] <- list(
-    class1="test females"
-    ,class2="pregnant females"
-    ,class=c(rep(0,num.test.females),rep(1,num.pregnant.females))
-    ,range=(num.males+1):num.observations
-  )
-
-  classification.problems[[length(classification.problems)+1]] <- list(
-    class1="all observations"
-    ,class2="pregnant females"
-    ,class=c(rep(0,num.observations-num.pregnant.females),rep(1,num.pregnant.females))
-    ,range=1:num.observations
-  )
-
-  classification.problems[[length(classification.problems)+1]] <- list(
-    class1="males"
-    ,class2="females"
-    ,class3="pregnant females"
-    ,class=c(rep(0,num.males),rep(1,num.observations-num.pregnant.females),rep(2,num.pregnant.females))
-    ,range=1:num.observations
+  classification.problems <- list(
+    list(
+      class1="males"
+      ,class2="females"
+      ,num.classes=2
+      ,class=c(rep(0,num.males),rep(1,num.females))
+      ,range=1:num.observations
+    )
+    ,list(
+      class1="test females"
+      ,class2="pregnant females"
+      ,num.classes=2
+      ,class=c(rep(0,num.test.females),rep(1,num.pregnant.females))
+      ,range=(num.males+1):num.observations
+    )
+    ,list(
+      class1="rest of observations"
+      ,class2="pregnant females"
+      ,num.classes=2
+      ,class=c(rep(0,num.observations-num.pregnant.females),rep(1,num.pregnant.females))
+      ,range=1:num.observations
+    )
+    ,list(
+      class1="males"
+      ,class2="females"
+      ,class3="pregnant females"
+      ,num.classes=3
+      ,class=c(rep(0,num.males),rep(1,num.observations-num.males-num.pregnant.females),rep(2,num.pregnant.females))
+      ,range=1:num.observations
+    )
   )
 
   # Extract problems
@@ -113,31 +96,35 @@ extract.problems <- function(analyzed.males,analyzed.females) {
 
   for(classification.problem in classification.problems) {
     for(feature.matrix in feature.matrices) {
-      extracted.problems[[length(extracted.problems)+1]] <- list(
-        class1=classification.problem$class1
-        ,class2=classification.problem$class2
-        ,feats=feature.matrix$data[classification.problem$range,]
-        ,class=classification.problem$class
-        ,type="tweet counts"
-      )
+      problem <- classification.problem
+      problem$type.feats <- feature.matrix$type.feats
+      problem$feats <- feature.matrix$feats[classification.problem$range,]
+      extracted.problems[[length(extracted.problems)+1]] <- problem
     }
   }
-
 
   return(extracted.problems)
 }
 
-# Wrapper for knn algorithm
-knn.euclidean <- function(data,from=2,to=60,by=2) {
+# Wrapper for svm 
+svm.custom <- function(problem) {
+  num.folds <- 40
+  return(svm(problem$feats,factor(problem$class),cross=num.folds)$accuracies)
+}
+
+knn.euclidean <- function(problem) {
+  # Ks configuration
+  k.from <- 2
+  k.to <- 60
+  k.by <- 2
   accuracies <- c()
-  num.observations <- length(data$class)
-  ks <- seq(from=from,to=to,by=by)
+  num.observations <- length(problem$class)
+  ks <- seq(from=k.from,to=k.to,by=k.by)
   for(k in ks) {
-    # Knn probably return an error rate already check this
-    pred.classes <- knn.cv(data$feats,data$class,k)
+    pred.classes <- knn.cv(problem$feats,problem$class,k)
     accuracies <- c(
       accuracies
-      ,sum(as.numeric(pred.classes==data$class))/num.observations
+      ,mean(pred.classes==classes)
     )
   }
   return(list(
