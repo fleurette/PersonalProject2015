@@ -27,6 +27,12 @@ analyze.profiles <- function(data,bin.size,smoothing.bandwidth) {
     ,function(profile) {
       during <- analyze.profile(profile$tweet.times,bin.size,smoothing.bandwidth,profile$dob-pregnancy.length,profile$dob,num.bins)
       before <- analyze.profile(profile$tweet.times,bin.size,smoothing.bandwidth,profile$dob-2*pregnancy.length,profile$dob-pregnancy.length,num.bins)
+      if(length(during)) {
+        during$id <- profile$id
+      }
+      if(length(before)) {
+        before$id <- profile$id
+      }
       profile$analysis <- list(
         during=during
         ,before=before
@@ -51,7 +57,7 @@ analyze.profiles <- function(data,bin.size,smoothing.bandwidth) {
 summarize.profiles <- function(profiles) {
   # Compute mean, sd, variance, and sde for tweet times and acf values
   summarize <- function(data) {
-    return(lapply(list(
+    result <- (lapply(list(
         list(data=t(sapply(data,'[[','pdf')),type="pdf")
         ,list(data=t(sapply(data,'[[','acf')),type="acf")
       )
@@ -64,6 +70,10 @@ summarize.profiles <- function(profiles) {
           ,count=observation.count
         ))
       }
+    ))
+    return(list(
+      pdf=result[[1]]
+      ,acf=result[[2]]
     ))
   }
   # Extract analysis for pregnancy period and before pregnancy period

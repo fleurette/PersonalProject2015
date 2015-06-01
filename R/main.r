@@ -18,10 +18,6 @@ dependencies <- c(
 credentials.path <- "../dbCredentials.dat"
 raw.path <- ".rawData"
 figures.path <- "figures/"
-matlab.path <- "summary.mat"
-r.path <- "profiles.data"
-final.path <- "final/"
-classified.path <- "classification/"
 
 setup <- function() {
   install.packages(dependencies)
@@ -59,18 +55,18 @@ analyze <- function(bin.size,smoothing.bandwidth,matlab.backup=FALSE) {
   dir.create(paste(dir.path,"/males/",sep=''))
   dir.create(paste(dir.path,"/females/",sep=''))
   dir.create(paste(dir.path,"/data/",sep=''))
-  dir.create(paste(dir.path,"/final/",sep=''))
+  dir.create(paste(dir.path,"/summary/",sep=''))
   dir.create(paste(dir.path,"/classify/",sep=''))
   # Save processed data
   save(
     analyzed.males
     ,analyzed.females
-    ,file=paste(dir.path,"/data/",r.path,sep='')
+    ,file=paste(dir.path,"/data/profiles.data",sep='')
   )
   print("Saved data")
   if(matlab.backup) {
     writeMat(
-      paste(dir.path,"/data/",matlab.path,sep='')
+      paste(dir.path,"/data/dump.mat",sep='')
       # Males test
       ,males=analyzed.males
       ,females=analyzed.females
@@ -79,23 +75,16 @@ analyze <- function(bin.size,smoothing.bandwidth,matlab.backup=FALSE) {
   }
   # Classify data
   classifications <- classify.data(analyzed.males,analyzed.females)
-  # Plot result of classification and summary of analysis
+  print("Classified data")
+  # Plot profiles information
   all.plot(analyzed.males,paste(dir.path,"/males/",sep=''))
-  print("Plotted male data")
   all.plot(analyzed.females,paste(dir.path,"/females/",sep=''))
-  print("Plotted female data")
-  final.plot(
-    analysed.males
-    ,analysed.females
-    ,matlab.path
-    ,paste(dir.path,"/final/",sep='')
-  )
-  # Classify data
-  classification.plot(
-    classifications
-    ,paste(dir.path,"/classify/",sep='')
-  )
-  # Return analyzed profiles
+  # Plot profiles summary
+  final.plot(analyzed.males,analyzed.females,paste(dir.path,"/summary/",sep=""))
+  # Plot summary of classification
+  classification.plot(classifications,paste(dir.path,"/classify/",sep=''))
+  print("Plotted data")
+  # Return useful informations
   return(list(
     analyzed.males=analyzed.males
     ,analyzed.females=analyzed.females

@@ -97,7 +97,7 @@ extract.problems <- function(analyzed.males,analyzed.females) {
   for(classification.problem in classification.problems) {
     for(feature.matrix in feature.matrices) {
       problem <- classification.problem
-      problem$type.feats <- feature.matrix$type.feats
+      problem$type <- feature.matrix$type
       problem$feats <- feature.matrix$feats[classification.problem$range,]
       extracted.problems[[length(extracted.problems)+1]] <- problem
     }
@@ -109,7 +109,7 @@ extract.problems <- function(analyzed.males,analyzed.females) {
 # Wrapper for svm 
 svm.custom <- function(problem) {
   num.folds <- 40
-  return(svm(problem$feats,factor(problem$class),cross=num.folds)$accuracies)
+  return(svm(problem$feats,factor(problem$class),cross=num.folds)$accuracies/100)
 }
 
 knn.euclidean <- function(problem) {
@@ -124,7 +124,7 @@ knn.euclidean <- function(problem) {
     pred.classes <- knn.cv(problem$feats,problem$class,k)
     accuracies <- c(
       accuracies
-      ,mean(pred.classes==classes)
+      ,mean(pred.classes==problem$class)
     )
   }
   return(list(
