@@ -1,7 +1,7 @@
 library(MASS)
 
 qda.execute <- function(problem) {
-  num.folds <- 5
+  num.folds <- nrow(problem$feats)
   fold.idx <- get.fold.idx(problem,num.folds)
   return(sapply(
     1:num.folds

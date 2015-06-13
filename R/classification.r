@@ -1,5 +1,3 @@
-library(class)
-library(e1071)
 source('qda.r')
 
 
@@ -108,7 +106,7 @@ extract.problems <- function(analyzed.males,analyzed.females) {
 
 # Wrapper for svm 
 svm.custom <- function(problem) {
-  num.folds <- 40
+  num.folds <- nrow(problem$feats)
   return(svm(problem$feats,factor(problem$class),cross=num.folds)$accuracies/100)
 }
 

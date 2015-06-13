@@ -1,7 +1,3 @@
-library(rJava)
-library(RMongo)
-library(jsonlite)
-
 # The data is organized in the following way
 # 1 is the tweet times
 # 2 is the gender

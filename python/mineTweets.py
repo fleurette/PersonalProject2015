@@ -21,9 +21,11 @@ def mineAccounts(profiles,dbInterface,api):
     if not dbInterface.existsData(profileId):
       try:
         print "\nStarting data collection for " + profileId
-        rawTweets = twitterUtils.getTweets(api, profileId)
-        data = dataUtils.compileData(rawTweets,profile)
-        dbInterface.writeData(data)
+        rawTweets = twitterUtils.getTweets(api,profileId)
+        tweets = dataUtils.compileData(rawTweets,profile)
+        user = twitterUtils.getUser(api,profileId,profile)
+        dbInterface.writeTweets(tweets)
+        dbInterface.writeUser(user)
         print "\nData collected and saved for " + profileId
       except Exception as e:
         print "Caught exception"

@@ -63,3 +63,11 @@ Meeting June First, 1530
 #Use completely clean data for classification
 Compare acf values for profiles at intervals of 9 months
 Plot SDE of ACF values properly
+
+# Use tweet activity as a measure
+# Hold-one-hout
+#Characterize data much more, collect data for everyone, plot periodogram
+#Compare periodogram, between Matlab and R
+Bar-charts for variability, get exact number of correctly classified samples for each classifier
+https://onlinecourses.science.psu.edu/stat510/node/71
+Titres et sous-titres pour la structure
