@@ -7,9 +7,9 @@ classify.data <- function(analyzed.males,analyzed.females) {
     extract.problems(analyzed.males,analyzed.females)
     ,function(problem) {
       problem$knn.euclidean <- knn.euclidean(problem)
-      qda.accuracies <- qda.execute(problem)
-      problem$qda <- qda.accuracies
+      problem$qda <- qda.execute(problem)
       problem$svm <- svm.custom(problem)
+      print("Done Problem")
       return(problem)
     }
   ))
@@ -46,14 +46,12 @@ extract.problems <- function(analyzed.males,analyzed.females) {
 
   pdfs <- extract.observations("pdf")
   acfs <- extract.observations("acf")
-  acf.indices <- extract.observations("acf.indices")
-  all.features <- cbind(pdfs,acfs,acf.indices)
+  all.features <- cbind(pdfs,acfs)
 
   feature.matrices <- list(
     list(feats=pdfs,type="pdf")
     ,list(feats=acfs,type="acf")
-    ,list(feats=acf.indices,type="acf indices")
-    ,list(feats=all.features,type="all features")
+    list(feats=all.features,type="all features")
   )
 
   # Prepare all different classification problems
@@ -72,7 +70,7 @@ extract.problems <- function(analyzed.males,analyzed.females) {
       ,class=c(rep(0,num.test.females),rep(1,num.pregnant.females))
       ,range=(num.males+1):num.observations
     )
-    ,list(
+    list(
       class1="rest of observations"
       ,class2="pregnant females"
       ,num.classes=2
@@ -106,8 +104,8 @@ extract.problems <- function(analyzed.males,analyzed.females) {
 
 # Wrapper for svm 
 svm.custom <- function(problem) {
-  num.folds <- nrow(problem$feats)
-  return(svm(problem$feats,factor(problem$class),cross=num.folds)$accuracies/100)
+  num.folds <- 10
+  return(svm(problem$feats,factor(problem$class),cross=num.folds,kernel="radial",cost=10,epsilon=0.2)$accuracies/100)
 }
 
 knn.euclidean <- function(problem) {

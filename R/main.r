@@ -66,10 +66,14 @@ treat.tweets <- function(bin.size,smoothing.bandwidth,matlab.backup=FALSE) {
   dir.create(paste(dir.path,"/data/",sep=''))
   dir.create(paste(dir.path,"/summary/",sep=''))
   dir.create(paste(dir.path,"/classify/",sep=''))
+  # Classify data
+  classifications <- classify.data(analyzed.males,analyzed.females)
+  print("Classified data")
   # Save processed data
   save(
     analyzed.males
     ,analyzed.females
+    ,classifications
     ,file=paste(dir.path,"/data/profiles.data",sep='')
   )
   print("Saved data")
@@ -82,9 +86,6 @@ treat.tweets <- function(bin.size,smoothing.bandwidth,matlab.backup=FALSE) {
     )
     print("Saved data to Matlab binary")
   }
-  # Classify data
-  classifications <- classify.data(analyzed.males,analyzed.females)
-  print("Classified data")
   # Plot profiles information
   all.plot(analyzed.males,paste(dir.path,"/males/",sep=''))
   all.plot(analyzed.females,paste(dir.path,"/females/",sep=''))
@@ -97,7 +98,7 @@ treat.tweets <- function(bin.size,smoothing.bandwidth,matlab.backup=FALSE) {
   return(list(
     analyzed.males=analyzed.males
     ,analyzed.females=analyzed.females
-    ,classifications=classifications
+    classifications=classifications
   ))
 }
 
@@ -117,6 +118,9 @@ treat.users <- function() {
 
   pie(table(users$females$time_zone),radius=1.05,cex=0.40,main="Repartition of time zones for all female users")
   pie(table(users$females$lang),radius=0.7,cex=0.6,main="Repartition of languages for all female users")
+
+
+  hist(log10(c(males$friends_count,females$friends_count)),breaks=20,xlab="Number of followers, scale in log10",ylab="Frequency",main="Number of followers of all users")
 
 
   pie(table(c(users$females$lang,users$males$lang)),radius=0.7,cex=0.6,main="Repartition of languages for all female users")
