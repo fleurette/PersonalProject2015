@@ -65,7 +65,7 @@ summarize.profiles <- function(profiles) {
         observation.count <- colSums(apply(observations$data,2,function(observation) (!is.na(observation))))
         return(list(
           mean=colMeans(observations$data,na.rm=TRUE)
-          ,sde=sqrt(diag(var(observations$data,na.rm=TRUE))/sqrt(observation.count))
+          ,sde=sqrt(apply(observations$data,2,function(col) {var(col,na.rm=TRUE)}))/sqrt(observation.count)
           ,type=observations$type
           ,count=observation.count
         ))

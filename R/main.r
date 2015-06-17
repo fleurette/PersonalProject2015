@@ -98,7 +98,7 @@ treat.tweets <- function(bin.size,smoothing.bandwidth,matlab.backup=FALSE) {
   return(list(
     analyzed.males=analyzed.males
     ,analyzed.females=analyzed.females
-    classifications=classifications
+    ,classifications=classifications
   ))
 }
 
