@@ -51,7 +51,7 @@ extract.problems <- function(analyzed.males,analyzed.females) {
   feature.matrices <- list(
     list(feats=pdfs,type="pdf")
     ,list(feats=acfs,type="acf")
-    list(feats=all.features,type="all features")
+    ,list(feats=all.features,type="all features")
   )
 
   # Prepare all different classification problems
@@ -63,6 +63,20 @@ extract.problems <- function(analyzed.males,analyzed.females) {
       ,class=c(rep(0,num.males),rep(1,num.females))
       ,range=1:num.observations
     )
+    #,list(
+    #  class1="males"
+    #  ,class2="pregnant females"
+    #  ,num.classes=2
+    #  ,class=c(rep(0,num.test.males),rep(1,num.pregnant.males))
+    #  ,range=c(1:num.males,(1+num.males+num.test.females):num.observations)
+    #)
+    ,list(
+      class1="males"
+      ,class2="pregnant males"
+      ,num.classes=2
+      ,class=c(rep(0,num.test.males),rep(1,num.pregnant.males))
+      ,range=c(1:num.males)
+    )
     ,list(
       class1="test females"
       ,class2="pregnant females"
@@ -70,21 +84,21 @@ extract.problems <- function(analyzed.males,analyzed.females) {
       ,class=c(rep(0,num.test.females),rep(1,num.pregnant.females))
       ,range=(num.males+1):num.observations
     )
-    list(
+    ,list(
       class1="rest of observations"
       ,class2="pregnant females"
       ,num.classes=2
       ,class=c(rep(0,num.observations-num.pregnant.females),rep(1,num.pregnant.females))
       ,range=1:num.observations
     )
-    ,list(
-      class1="males"
-      ,class2="females"
-      ,class3="pregnant females"
-      ,num.classes=3
-      ,class=c(rep(0,num.males),rep(1,num.observations-num.males-num.pregnant.females),rep(2,num.pregnant.females))
-      ,range=1:num.observations
-    )
+    #,list(
+    #  class1="males"
+    #  ,class2="females"
+    #  ,class3="pregnant females"
+    #  ,num.classes=3
+    #  ,class=c(rep(0,num.males),rep(1,num.observations-num.males-num.pregnant.females),rep(2,num.pregnant.females))
+    #  ,range=1:num.observations
+    #)
   )
 
   # Extract problems
@@ -104,8 +118,8 @@ extract.problems <- function(analyzed.males,analyzed.females) {
 
 # Wrapper for svm 
 svm.custom <- function(problem) {
-  num.folds <- 10
-  return(svm(problem$feats,factor(problem$class),cross=num.folds,kernel="radial",cost=10,epsilon=0.2)$accuracies/100)
+  num.folds <- nrow(problem$feats)
+  return(svm(gamma=.01,C=333,epsilon=.1,problem$feats,factor(problem$class),cross=num.folds,kernel="radial")$accuracies/100)
 }
 
 knn.euclidean <- function(problem) {

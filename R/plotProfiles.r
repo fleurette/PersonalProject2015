@@ -89,7 +89,7 @@ summary.plot <- function(summary,taxis,type,path) {
   arrows(
     taxis,summary$pdf$mean+summary$pdf$sde
     ,taxis,summary$pdf$mean-summary$pdf$sde
-    ,code=1,length=0,lwd=0.5,angle=90,col='blue'
+    ,code=3,length=0,lwd=0.5,angle=90,col='blue'
   )
   plot(
     x=(1:length(summary$acf$mean))
@@ -102,7 +102,7 @@ summary.plot <- function(summary,taxis,type,path) {
   arrows(
     x0=1:length(summary$acf$mean),y1=summary$acf$mean+summary$acf$sde
     ,y0=summary$acf$mean-summary$acf$sde
-    ,code=1,length=0,angle=90,col='blue',lwd=2
+    ,code=3,length=0,angle=90,col='blue',lwd=2
   )
   dev.off()
 }
@@ -110,7 +110,7 @@ summary.plot <- function(summary,taxis,type,path) {
 acf.plot <- function(analysis,type,path) {
   pdf(paste(path,type,'_acf.pdf',sep=''))
   for(a in analysis) {
-    plot(y=a$acf,x=1:length(a$acf),main=paste("ACF of user",a$id),xlab="lag",ylab="acf")
+    plot(y=a$acf,x=1:length(a$acf),main=paste("ACF of user",a$id),xlab="lag",ylab="acf",type="l")
   }
   dev.off()
 }
@@ -232,12 +232,12 @@ comparison.plot <- function(taxis,summary.1,summary.2,path,type,type.1,type.2) {
   arrows(
     x0=taxis,y0=summary.2$pdf$mean-summary.2$pdf$sde
     ,y1=summary.2$pdf$mean+summary.2$pdf$sde
-    ,code=1,length=0,angle=90,col='pink'
+    ,code=3,length=0,angle=90,col='pink'
   )
   arrows(
     x0=taxis,y0=summary.1$pdf$mean-summary.1$pdf$sde
     ,y1=summary.1$pdf$mean+summary.1$pdf$sde
-    ,code=1,length=0,angle=90,col='blue'
+    ,code=3,length=0,angle=90,col='blue'
   )
   legend(
     "topleft"
@@ -269,12 +269,12 @@ comparison.plot <- function(taxis,summary.1,summary.2,path,type,type.1,type.2) {
   arrows(
     x0=1:length(summary.1$acf$mean),y0=summary.1$acf$mean-summary.1$acf$sde
     ,y1=summary.1$acf$mean+summary.1$acf$sde
-    ,code=1,length=0,angle=90,col='blue'
+    ,code=3,length=0,angle=90,col='blue'
   )
   arrows(
     x0=(1:length(summary.2$acf$mean))+0.5,y0=summary.2$acf$mean-summary.2$acf$sde
     ,y1=summary.2$acf$mean+summary.2$acf$sde
-    ,code=1,length=0,angle=90,col='pink'
+    ,code=3,length=0,angle=90,col='pink'
   )
   legend(
     "topright"
